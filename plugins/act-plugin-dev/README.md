@@ -10,7 +10,7 @@
 Everything needed to build a plugin for the `actdata-plugins` marketplace, and the conventions
 that keep one from breaking at install time.
 
-![skills](https://img.shields.io/badge/skills-7-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-11-00A8E1?labelColor=003767)
 ![agents](https://img.shields.io/badge/agents-3-003767)
 ![commands](https://img.shields.io/badge/commands-1-147EC2)
 ![size](https://img.shields.io/badge/size-535_KB-00817D)
@@ -36,7 +36,8 @@ that keep one from breaking at install time.
 ## What this is
 
 A fork of Claude Code's `plugin-dev` toolkit, adapted for this marketplace. It carries the same
-seven reference skills, the same three review agents, and the same eight-phase creation command —
+seven reference skills, four portable workflow skills, the same three review agents, and the same
+eight-phase creation command —
 with the generic advice replaced by what is actually true here: plugins live at `plugins/<name>/`,
 Bun is the runtime, skill names are kebab-case and must match their directory, and a plugin is not
 finished until it is registered in `.claude-plugin/marketplace.json`.
@@ -49,7 +50,7 @@ itself.
 
 | Component | Count | What it is |
 |---|---|---|
-| Skills | **7** | A lean `SKILL.md` with the decision rules needed immediately, plus `references/`, `examples/` and `scripts/` loaded on demand. |
+| Skills | **11** | Authoring guidance plus portable creation and review workflows for supported hosts. |
 | Agents | **3** | `agent-creator` generates agents; `plugin-validator` audits a plugin against structure, manifest, marketplace registration, and repository conventions; `skill-reviewer` reviews a single skill. |
 | Command | **1** | `/act-plugin-dev:create-plugin`, an eight-phase guided workflow from concept to registered plugin. |
 | Utility scripts | **6** | POSIX-sh validators shipped inside the skills: `validate-agent.sh`, `validate-hook-schema.sh`, `test-hook.sh`, `hook-linter.sh`, `validate-settings.sh`, `parse-frontmatter.sh`. |
@@ -67,7 +68,7 @@ runtime behaviour.
 | [`agent-development`](skills/agent-development/) | Subagents: system prompt design, triggering conditions, `<example>` blocks, tool selection. |
 | [`hook-development`](skills/hook-development/) | All hook events, prompt-based vs command hooks, output schemas, security, portable paths. |
 | [`mcp-integration`](skills/mcp-integration/) | Wiring an MCP server into a plugin: stdio, SSE and HTTP server types, authentication, tool usage. |
-| [`plugin-settings`](skills/plugin-settings/) | The `.claude/<plugin-name>.local.md` pattern for user-configurable plugin state. |
+| [`plugin-settings`](skills/plugin-settings/) | Portable `.agents/<plugin-name>.local.md` settings with a legacy Claude fallback. |
 
 ## Agents
 

@@ -9,7 +9,7 @@
 
 Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE.
 
-![skills](https://img.shields.io/badge/skills-7-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-23-00A8E1?labelColor=003767)
 ![agents](https://img.shields.io/badge/agents-7-003767)
 ![commands](https://img.shields.io/badge/commands-9-147EC2)
 ![config](https://img.shields.io/badge/config-driven-00817D)
@@ -49,7 +49,7 @@ it.
 
 | Component | Count | What it is |
 |---|---|---|
-| Skills | 7 | Domain knowledge: diagnostics, thresholds, and what the output means |
+| Skills | 23 | Domain knowledge plus portable command and role adapters |
 | Agents | 7 | Role-based reasoning for open-ended investigation |
 | Commands | 9 | One-shot assessments producing structured findings |
 | Scripts | 1 | A read-only ten-section triage pass over a database host |
@@ -108,8 +108,9 @@ claude plugin install act-platform-engineering@actdata-plugins
 
 ## Configuration
 
-Create `.claude/act-platform-engineering.local.md` in your project. It is gitignored by this
-repository's `.gitignore` (`.claude/*.local.md`), and it must stay that way -- it holds exactly the
+Create `.agents/act-platform-engineering.local.md` in your project. Existing Claude installations
+may keep `.claude/act-platform-engineering.local.md` as a fallback. Both paths are gitignored, and
+they must stay that way -- the file holds exactly the
 identifiers the plugin is designed not to carry.
 
 ```markdown

@@ -1,0 +1,7 @@
+{
+  "name": "act-platform-engineering", "version": "0.2.0", "description": "Assessment and operations workflows for PostgreSQL, ZFS, Linux hosts, Proxmox VE, observability, and incidents.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["postgresql", "zfs", "linux", "proxmox", "sre", "observability", "incident-response"], "skills": "./skills/",
+  "interface": { "displayName": "ACT Platform Engineering", "shortDescription": "Assess and operate ACT Data infrastructure", "longDescription": "Run evidence-backed assessments and incident workflows for PostgreSQL, ZFS, Linux, Proxmox VE, and observability systems.", "developerName": "ACT Data", "category": "Operations", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Assess the health of this PostgreSQL environment.", "Check observability coverage across the fleet."] }
+}

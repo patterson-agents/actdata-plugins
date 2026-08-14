@@ -1,7 +1,6 @@
 ---
 name: proxmox-virtualization
 description: This skill should be used when the user asks to "check PVE", "Proxmox health", "how are the hypervisors", "check the VM fleet", "is the cluster quorate", "check VM backups", "are there orphaned VMs", or mentions pvecm, pvesh, pvesm, vzdump, Proxmox Backup Server, ha-manager, cluster quorum, or VM sprawl. Covers Proxmox VE cluster health, node and storage checks, VM inventory hygiene, backup configuration, and high availability.
-version: 0.1.0
 ---
 
 # Proxmox VE

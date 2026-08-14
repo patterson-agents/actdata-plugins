@@ -9,7 +9,7 @@
 
 Zoho Projects work tracking, and writing engineering work up so it can be acted on.
 
-![skills](https://img.shields.io/badge/skills-2-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-6-00A8E1?labelColor=003767)
 ![agents](https://img.shields.io/badge/agents-1-003767)
 ![commands](https://img.shields.io/badge/commands-3-147EC2)
 ![config](https://img.shields.io/badge/config-driven-00817D)
@@ -44,7 +44,7 @@ It ships **no portal IDs, project IDs or user IDs**. Those come from a settings 
 
 | Component | Count | What it is |
 |---|---|---|
-| Skills | 2 | Zoho Projects mechanics, and reporting and writing conventions |
+| Skills | 6 | Zoho Projects and reporting guidance plus portable workflow adapters |
 | Agents | 1 | Deciding what is worth reporting and to whom |
 | Commands | 3 | Draft an issue, draft a task, draft the weekly status |
 | Scripts | 1 | Bulk creation from JSON, with a credential-free dry run |
@@ -73,8 +73,8 @@ claude plugin install act-work-tracking@actdata-plugins
 
 ## Configuration
 
-Create `.claude/act-work-tracking.local.md` in your project. It is gitignored by this repository's
-`.gitignore` (`.claude/*.local.md`).
+Create `.agents/act-work-tracking.local.md` in your project. Existing Claude installations may use
+`.claude/act-work-tracking.local.md` as a fallback. Both paths are gitignored.
 
 ```markdown
 # act-work-tracking settings

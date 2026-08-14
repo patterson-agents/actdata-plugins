@@ -1,7 +1,6 @@
 ---
 name: ops-reporting
 description: This skill should be used when the user asks to "write the weekly status", "draft a status report", "update the assessment doc", "what goes in which document", "write this up for management", or asks about tone and phrasing for issues, status reports or internal engineering documents. Covers the house writing conventions, weekly status structure, and how a multi-document assessment set divides by audience.
-version: 0.1.0
 ---
 
 # Operations Reporting

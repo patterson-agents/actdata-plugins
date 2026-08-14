@@ -1,7 +1,6 @@
 ---
 name: ci-troubleshooting
 description: This skill should be used when a GitLab CI integration is not working -- "Claude isn't responding to @claude", "the job can't open an MR", "authentication errors in the pipeline", "the MCP server won't connect", "the job runs but nothing happens" -- or when diagnosing pipeline failures involving credentials, tokens, tool permissions or triggers. Covers the common failure modes and how to distinguish them.
-version: 0.1.0
 ---
 
 # CI troubleshooting

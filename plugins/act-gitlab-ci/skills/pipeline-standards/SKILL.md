@@ -1,7 +1,6 @@
 ---
 name: pipeline-standards
 description: This skill should be used when writing or reviewing a .gitlab-ci.yml, a GitLab merge request approval rule, a GitLab CI credential configuration or a GitLab deployment job, and when asked "does this .gitlab-ci.yml meet our standards", "how many approvers do we need on a GitLab MR", "which scans are required in our GitLab pipeline", "can I use a static credential in GitLab CI", or "how do we promote a build to production in GitLab". Applies pipeline standards translated to GitLab, with every clause marked as derived rather than authoritative. For the authoritative Azure DevOps and GitHub standard, use patterson-engineering:cicd-pipeline-standards instead.
-version: 0.1.0
 ---
 
 # Pipeline standards (GitLab)

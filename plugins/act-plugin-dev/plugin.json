@@ -1,0 +1,6 @@
+{
+  "name": "act-plugin-dev", "version": "0.2.0", "description": "Create and review portable agent plugins.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["plugin-development", "skills", "commands", "agents", "hooks", "mcp", "marketplace"], "skills": "skills/", "commands": "commands/"
+}

@@ -3,7 +3,8 @@
 Field-tested quirks of the Zoho Projects REST API. These are the things that cost an afternoon the
 first time.
 
-All portal, project and user IDs come from `.claude/act-work-tracking.local.md`. None are recorded
+All portal, project and user IDs come from `.agents/act-work-tracking.local.md`, falling back to the
+legacy `.claude/act-work-tracking.local.md`. None are recorded
 here.
 
 ---

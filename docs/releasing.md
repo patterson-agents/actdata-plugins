@@ -20,13 +20,14 @@ How versions work here, and what is not yet decided.
 
 ## Where versions live
 
-Three distinct kinds, and only two of them are related:
+Each plugin now has host-specific manifests and catalog entries. They describe one release and must
+carry the same plugin version.
 
 | Version | File | Means |
 |---|---|---|
 | Marketplace | `.claude-plugin/marketplace.json` top level | The catalog's own version |
-| Plugin manifest | `plugins/<name>/.claude-plugin/plugin.json` | That plugin's version |
-| Catalog entry | The plugin's entry in `marketplace.json` | The version the catalog advertises |
+| Plugin manifests | `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and root `plugin.json` | That plugin's version |
+| Catalog entries | The plugin's entries in the Claude, OpenAI, and Copilot marketplaces | The version each host advertises where supported |
 
 The **second and third must match**. The first is independent.
 
@@ -84,9 +85,12 @@ is cut, which is one of the open questions.
 ## Bumping a plugin
 
 ```sh
-# 1. Both files, same commit
-$EDITOR plugins/<name>/.claude-plugin/plugin.json      # "version"
-$EDITOR .claude-plugin/marketplace.json                # that plugin's entry
+# 1. All host manifests and catalogs, same commit
+$EDITOR plugins/<name>/.claude-plugin/plugin.json
+$EDITOR plugins/<name>/.codex-plugin/plugin.json
+$EDITOR plugins/<name>/plugin.json
+$EDITOR .claude-plugin/marketplace.json
+$EDITOR .github/plugin/marketplace.json
 
 # 2. Update counts if components were added or removed
 $EDITOR plugins/<name>/README.md                       # badges, component tables

@@ -158,3 +158,4 @@ pnpm-lock.yaml
 # in a `.local.md` the operator writes for their own site. Committing one would put the
 # very identifiers the plugins are designed to exclude back into the repository.
 .claude/*.local.md
+.agents/*.local.md

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "act-platform-engineering",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Assessment and operations toolkit for PostgreSQL, ZFS, Linux hosts and Proxmox VE. Ships role-based reasoning agents, one-shot diagnostic commands with green/red criteria, and incident-response practice. Reads its host inventory from a site-local settings file, so it carries no environment identifiers of its own.",
   "author": {
     "name": "Daniel Bodnar",

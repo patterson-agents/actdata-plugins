@@ -1,0 +1,6 @@
+{
+  "name": "act-platform-engineering", "version": "0.2.0", "description": "Assess and operate PostgreSQL, ZFS, Linux, Proxmox VE, and observability systems.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["postgresql", "zfs", "linux", "proxmox", "sre", "observability", "incident-response"], "skills": "skills/", "commands": "commands/"
+}

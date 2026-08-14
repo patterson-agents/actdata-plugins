@@ -1,0 +1,7 @@
+{
+  "name": "act-plugin-dev", "version": "0.2.0", "description": "ACT Data's toolkit for creating and reviewing portable Claude, ChatGPT, Codex, and GitHub Copilot plugins.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["plugin-development", "skills", "commands", "agents", "hooks", "mcp", "marketplace"], "skills": "./skills/",
+  "interface": { "displayName": "ACT Plugin Development Toolkit", "shortDescription": "Build and review portable agent plugins", "longDescription": "Create and validate ACT Data plugins for Claude Code, ChatGPT, Codex, and GitHub Copilot.", "developerName": "ACT Data", "category": "Development", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Create a portable plugin for this marketplace.", "Review this plugin for compatibility."] }
+}

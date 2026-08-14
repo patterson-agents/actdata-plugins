@@ -1,0 +1,7 @@
+{
+  "name": "act-work-tracking", "version": "0.2.0", "description": "Zoho Projects work tracking and operations reporting workflows for ACT Data.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["zoho", "issue-tracking", "backlog", "status-reporting", "technical-writing"], "skills": "./skills/",
+  "interface": { "displayName": "ACT Work Tracking", "shortDescription": "Draft tracked work and operations reports", "longDescription": "Draft Zoho Projects tasks and issues, check for duplicates, and prepare concise engineering status reports.", "developerName": "ACT Data", "category": "Workflow", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Draft a Zoho issue from this finding.", "Prepare this week's engineering status report."] }
+}

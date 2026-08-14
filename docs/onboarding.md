@@ -22,13 +22,13 @@ repeat itself here; read this first, then that.
 
 ## What you are working on
 
-`actdata-plugins` is a **Claude Code plugin marketplace**. It is not an application, a library or a
+`actdata-plugins` is a plugin marketplace for **Claude Code, ChatGPT, Codex, and GitHub Copilot**. It is not an application or a
 service. There is no server, no build step and nothing to deploy.
 
-The deliverable is `.claude-plugin/marketplace.json` plus the plugins under `plugins/` that it points
-at. People consume this repository by running `claude plugin install <name>@actdata-plugins`, which
-means **the install experience is the product**. A plugin that is correct on disk but broken at
-install time has shipped nothing.
+The deliverable is the three host catalogs plus the plugins under `plugins/` that they point at.
+People install those plugins through Claude Code, ChatGPT/Codex, or GitHub Copilot, so **the install
+experience is the product**. A plugin that is correct on disk but broken on one supported host is not
+compatible with that host.
 
 One consequence dominates everything else:
 
