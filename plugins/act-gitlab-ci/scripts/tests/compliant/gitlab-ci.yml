@@ -1,0 +1,79 @@
+# Fixture: a pipeline that should produce no ERROR findings.
+#
+# Deliberately does NOT use include:, so every scan is visible to the checker.
+# A real pipeline is required by the standard to use shared templates, which the
+# checker cannot follow -- that tension is documented, not resolved.
+
+stages:
+  - build
+  - scan
+  - deploy
+
+variables:
+  APPROVALS_NOTE: "approvals_before_merge: 2"
+
+build:
+  stage: build
+  script:
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
+    - bun test
+  artifacts:
+    paths:
+      - dist/
+
+checkmarx-sast:
+  stage: scan
+  needs: [build]
+  script:
+    - checkmarx scan --type sast
+
+checkmarx-sca:
+  stage: scan
+  needs: [build]
+  script:
+    - checkmarx scan --type sca
+
+checkmarx-api:
+  stage: scan
+  needs: [build]
+  script:
+    - checkmarx scan --type api
+
+checkmarx-iac:
+  stage: scan
+  needs: [build]
+  script:
+    - checkmarx scan --type iac-scan
+
+gitleaks:
+  stage: scan
+  needs: [build]
+  script:
+    - gitleaks detect --source . --no-git
+
+trivy-container:
+  stage: scan
+  needs: [build]
+  script:
+    - trivy image "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+
+dast:
+  stage: scan
+  needs: [build]
+  script:
+    - run-dast --target "$STAGING_URL"
+
+deploy-production:
+  stage: deploy
+  needs: [build]
+  environment:
+    name: production
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.example.com
+  script:
+    # Promotes the artifact built above. No second build.
+    - deploy --strategy canary --image "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+    - run-smoke-tests --env production
+  after_script:
+    - on-failure rollback --to-previous

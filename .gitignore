@@ -152,3 +152,9 @@ vite.config.ts.timestamp-*
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Per-plugin settings files. Plugins in this marketplace ship no environment identifiers --
+# no hostnames, addresses, database names or portal IDs, not even as defaults. Those live
+# in a `.local.md` the operator writes for their own site. Committing one would put the
+# very identifiers the plugins are designed to exclude back into the repository.
+.claude/*.local.md

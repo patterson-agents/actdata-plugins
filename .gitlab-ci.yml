@@ -1,0 +1,48 @@
+# GitLab CI mirror of .github/workflows/ci.yml.
+#
+# Both call the same entry point, scripts/verify-all.sh, which is the single
+# definition of every mechanical invariant in this repository. Keep the two in
+# step: a check that exists in only one of them will be discovered by whoever is
+# unlucky enough to push to the other.
+
+stages:
+  - verify
+
+verify-all:
+  stage: verify
+  image: oven/bun:latest
+  variables:
+    # scripts/check-size.ts and check-no-binaries.ts read tracked files via
+    # `git ls-files`, and the test suites create throwaway git repositories
+    # under .tmp/. A full clone keeps both honest, the same reason the GitHub
+    # workflow sets fetch-depth: 0.
+    GIT_DEPTH: 0
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  before_script:
+    # The bun image is Debian-based but minimal; verify-all.sh and the suites it
+    # discovers need git and a POSIX shell.
+    - apt-get update -qq && apt-get install -y -qq git >/dev/null
+  script:
+    - sh scripts/verify-all.sh
+
+# The `claude` CLI is not present on shared runners by default, so the manifest
+# schema check is advisory rather than gating, matching the GitHub workflow's
+# continue-on-error step.
+#
+# [TBD: install the CLI here once the org settles on a supported install path.]
+validate-manifest:
+  stage: verify
+  image: oven/bun:latest
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  script:
+    - |
+      if command -v claude >/dev/null 2>&1; then
+        claude plugin validate .
+      else
+        echo "claude CLI not found on this runner; skipping (see [TBD] note in .gitlab-ci.yml)."
+      fi

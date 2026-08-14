@@ -10,9 +10,9 @@
 ACT Data's institutional knowledge, encoded as installable
 [agent plugins](https://code.claude.com/docs/en/plugin-marketplaces).
 
-![plugins](https://img.shields.io/badge/plugins-1-00A8E1?labelColor=003767)
-![skills](https://img.shields.io/badge/skills-7-003767)
-![agents](https://img.shields.io/badge/agents-3-147EC2)
+![plugins](https://img.shields.io/badge/plugins-4-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-22-003767)
+![agents](https://img.shields.io/badge/agents-12-147EC2)
 ![runtime](https://img.shields.io/badge/runtime-Bun_·_no_build_step-00817D)
 ![gate](https://img.shields.io/badge/gate-verify--all.sh-58585B)
 
@@ -75,6 +75,9 @@ Then:
 | Plugin | What it is | Components |
 |---|---|---|
 | **[`act-plugin-dev`](plugins/act-plugin-dev/)**<br>Development | Everything needed to build a plugin for this marketplace, and the conventions that keep one from breaking at install time. A fork of Claude Code's `plugin-dev`, adapted to ACT's layout, Bun, and marketplace registration. | 7 skills · 3 agents · 1 command |
+| **[`act-platform-engineering`](plugins/act-platform-engineering/)**<br>Operations | Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. Diagnostic commands with green/red criteria, role-based reasoning agents, and incident practice. Reads its host inventory from a site-local settings file and ships no environment identifiers. | 7 skills · 7 agents · 9 commands |
+| **[`act-work-tracking`](plugins/act-work-tracking/)**<br>Workflow | Zoho Projects work tracking and operations reporting: the task-versus-issue distinction, the API's quirks, bulk creation with a credential-free dry run, and the writing conventions that keep issues and reports actionable. | 2 skills · 1 agent · 3 commands |
+| **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD and GitLab tooling: Claude Code as a CI job across three providers, the GitLab MCP server, the `glab` CLI, and pipeline standards translated to GitLab. Ships an MCP server and a zero-dependency pipeline checker. | 6 skills · 1 agent · 3 commands · 1 MCP |
 
 ### Not yet shipped
 
@@ -83,7 +86,6 @@ therefore not installable. That is deliberate — an unfinished plugin should no
 
 | Directory | State |
 |---|---|
-| `gitlab-standards` | Scaffold. `claude plugin init` output with TODO placeholders. Intended scope: ACT's CI/CD and DevOps skills. |
 | `code-review` | Empty shell. |
 | `standards` | Empty shell. |
 | `git-workflows` | Empty shell. |
@@ -221,9 +223,11 @@ files — follows `patterson-corp`, so someone moving between them finds the sam
 - **Brand assets are placeholders.** No ACT Data logo, wordmark, or palette exists. `docs/assets/`
   ships an invented mark using the inherited Patterson palette. See
   [`docs/assets/README.md`](docs/assets/README.md).
-- **`.gitlab/` is empty.** The repository ships a `gitlab-standards` scaffold, which implies a
-  GitLab CI mirror is expected. No ACT GitLab pipeline conventions were available to base one on.
-- **Three empty plugin shells and one scaffold** are unregistered, as described above.
+- **Three empty plugin shells** are unregistered, as described above.
+- **`act-gitlab-ci`'s pipeline standards are derived, not authoritative.** They are translated from a
+  standard written for Azure DevOps and GitHub, which does not permit GitLab and whose approved-tools
+  list excludes GitLab's built-in scanners. The conflict is recorded rather than resolved; see
+  [`_SOURCES.md`](plugins/act-gitlab-ci/skills/pipeline-standards/_SOURCES.md).
 - **The license identifier `LicenseRef-ACT-Internal` is provisional.** ACT Data's licensing posture
   for internal agent tooling has not been confirmed.
 - **`act-plugin-dev` is a fork, not a dependency.** It does not track upstream `plugin-dev`.

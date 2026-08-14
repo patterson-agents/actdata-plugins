@@ -1,0 +1,29 @@
+[
+  {
+    "type": "task",
+    "title": "Reliability and Failover",
+    "description": "Failover readiness, backup restoration, database high availability, and alerting.",
+    "priority": "High"
+  },
+  {
+    "type": "task",
+    "title": "Observability and Monitoring",
+    "description": "Metrics collection, dashboards, centralised logging, and alerting across all infrastructure.",
+    "priority": "High"
+  },
+  {
+    "type": "issue",
+    "title": "Automatic database failover",
+    "description": "If the primary goes down, failover is currently manual or undefined. Automated promotion and connection routing are needed so there is no scramble during an outage.<br><br>Ties into the broader reliability work."
+  },
+  {
+    "type": "issue",
+    "title": "Verify backup restore procedure",
+    "description": "Base backups are running on schedule but no restore has been performed against them. Recovery time and recovery viability are both currently unknown.<br><br>A restore into a non-production environment needs to be performed and the procedure documented as a runbook."
+  },
+  {
+    "type": "issue",
+    "title": "Deploy metrics collector to remaining hosts",
+    "description": "Several hosts have no metrics collector installed, leaving blind spots in the fleet. Database hosts additionally need the database plugin enabled, which is separate from installing the collector.<br><br>Coverage should be verified against the host inventory once the rollout completes."
+  }
+]

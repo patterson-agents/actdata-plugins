@@ -1,0 +1,79 @@
+# Claude Code in GitLab CI: Google Cloud over Workload Identity Federation.
+#
+# No downloaded service account keys. GitLab mints the job's OIDC token from the
+# id_tokens: block; a credential configuration file tells Google's auth
+# libraries where to read it, and GOOGLE_APPLICATION_CREDENTIALS exposes that to
+# Claude Code through Application Default Credentials.
+#
+# Prerequisites:
+#   - The Agent Platform API enabled in the GCP project
+#   - Workload Identity Federation configured to trust GitLab OIDC
+#   - A service account holding only the required roles
+#
+# Required CI/CD variables:
+#   GCP_WORKLOAD_IDENTITY_PROVIDER  provider resource name WITHOUT the
+#                                   //iam.googleapis.com/ prefix, e.g.
+#                                   projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+#   GCP_SERVICE_ACCOUNT             service account email
+#   GCP_PROJECT_ID                  Google Cloud project ID
+#   CLOUD_ML_REGION                 region, for example us-east5
+#
+# Set `aud` to the audience configured on the Workload Identity Pool provider,
+# typically your GitLab instance URL.
+
+stages:
+  - ai
+
+claude-vertex:
+  stage: ai
+  image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.example.com
+  before_script:
+    - apt-get update && apt-get install -y git && apt-get clean
+    - curl -fsSL https://claude.ai/install.sh | bash
+    # The installer places claude in ~/.local/bin, which isn't on PATH in this image
+    - export PATH="$HOME/.local/bin:$PATH"
+    # Write the job's OIDC token where credential_source expects it
+    - printf "%s" "$GITLAB_OIDC_TOKEN" > /tmp/oidc_token
+    # Write the WIF credential configuration to a file (no downloaded keys)
+    - |
+      cat > /tmp/cred.json <<EOF
+      {
+        "type": "external_account",
+        "audience": "//iam.googleapis.com/${GCP_WORKLOAD_IDENTITY_PROVIDER}",
+        "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+        "token_url": "https://sts.googleapis.com/v1/token",
+        "credential_source": {
+          "file": "/tmp/oidc_token"
+        },
+        "service_account_impersonation_url": "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${GCP_SERVICE_ACCOUNT}:generateAccessToken"
+      }
+      EOF
+    # Expose the credentials to Claude Code via Application Default Credentials
+    - export GOOGLE_APPLICATION_CREDENTIALS=/tmp/cred.json
+    # Authenticate the gcloud CLI with the same credential configuration
+    - gcloud auth login --cred-file=/tmp/cred.json
+    - gcloud config set project "$GCP_PROJECT_ID"
+  script:
+    - /bin/gitlab-mcp-server || true
+    - >
+      CLOUD_ML_REGION="${CLOUD_ML_REGION:-us-east5}"
+      claude
+      -p "${AI_FLOW_INPUT:-'Review and update code as requested'}"
+      --permission-mode acceptEdits
+      --allowedTools "Bash Read Edit Write mcp__gitlab"
+      --debug
+  variables:
+    CLOUD_ML_REGION: "us-east5"
+    CLAUDE_CODE_USE_VERTEX: "1"
+    ANTHROPIC_VERTEX_PROJECT_ID: "$GCP_PROJECT_ID"
+
+# With Workload Identity Federation there are no service account keys to store.
+# Use repository-specific trust conditions and least-privilege service accounts.
+#
+# Note: the paths above are inside the ephemeral job container, which is
+# destroyed when the job ends. They are not host paths.

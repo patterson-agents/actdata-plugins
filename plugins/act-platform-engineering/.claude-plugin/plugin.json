@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "act-platform-engineering",
+  "version": "0.1.0",
+  "description": "Assessment and operations toolkit for PostgreSQL, ZFS, Linux hosts and Proxmox VE. Ships role-based reasoning agents, one-shot diagnostic commands with green/red criteria, and incident-response practice. Reads its host inventory from a site-local settings file, so it carries no environment identifiers of its own.",
+  "author": {
+    "name": "Daniel Bodnar",
+    "email": "dbodnar@pattersonvet.com"
+  },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins",
+  "repository": "https://github.com/patterson-agents/actdata-plugins",
+  "license": "LicenseRef-ACT-Internal",
+  "keywords": [
+    "postgresql",
+    "zfs",
+    "linux",
+    "proxmox",
+    "sre",
+    "dba",
+    "sysadmin",
+    "observability",
+    "incident-response",
+    "infrastructure"
+  ]
+}
