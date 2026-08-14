@@ -43,6 +43,11 @@ Right now it holds one thing: the toolkit for building the rest of it.
 
 ## Quick start
 
+> [!TIP]
+> New to this repository? [`docs/onboarding.md`](docs/onboarding.md) is the day-one guide: what a
+> plugin marketplace is, how to get the gate running, what to read in what order, and real first
+> tasks.
+
 ```sh
 # inside Claude Code
 /plugin marketplace add patterson-agents/actdata-plugins
@@ -111,7 +116,12 @@ actdata-plugins/
 │   ├── check-no-binaries.ts      # fonts / office / archive / oversized-raster validator
 │   ├── verify-all.sh             # the gate battery -- CI and pre-commit both call this
 │   └── tests/run-tests.sh        # TDD fixtures for the two validators
-├── docs/
+├── docs/                         # see docs/README.md for the index
+│   ├── onboarding.md             # start here on day one
+│   ├── architecture.md           # how the marketplace works
+│   ├── verification.md           # every gate check, and what nothing checks
+│   ├── troubleshooting.md        # symptom -> cause -> fix
+│   ├── releasing.md · glossary.md
 │   ├── assets/                   # placeholder wordmark -- see docs/assets/README.md
 │   └── decisions/                # ADRs
 ├── .github/                      # issue + PR templates, ci.yml
@@ -206,6 +216,8 @@ files — follows `patterson-corp`, so someone moving between them finds the sam
 
 | File | Purpose |
 |---|---|
+| [`docs/`](docs/README.md) | Full documentation: onboarding, architecture, verification, troubleshooting, releasing, glossary |
+| [`docs/onboarding.md`](docs/onboarding.md) | Start here on day one: environment setup, orientation, and first tasks |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Repository conventions, the gate, and how to add a plugin |
 | [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Contributor Covenant, adapted for a B2B engineering context |
 | [`SECURITY.md`](SECURITY.md) | Private vulnerability reporting |
@@ -213,7 +225,7 @@ files — follows `patterson-corp`, so someone moving between them finds the sam
 | [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) | Bug, feature, and new-plugin proposal forms |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | Runs `scripts/verify-all.sh` on every push and pull request |
 | [`.githooks/pre-commit`](.githooks/pre-commit) | The fast local gate (opt in with `git config core.hooksPath .githooks`) |
-| [`docs/decisions/`](docs/decisions/) | ADRs |
+| [`docs/decisions/`](docs/decisions/README.md) | ADRs, with an index and the format |
 
 ## Status and open items
 
