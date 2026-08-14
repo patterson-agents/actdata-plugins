@@ -1,0 +1,45 @@
+# Fixture: a pipeline that should produce ERROR findings.
+#
+# Violations present, by design:
+#   - no scans at all (seven required-scan errors)
+#   - an unapproved container scanner
+#   - a static client secret instead of federated credentials
+#   - an inline credential literal
+#   - an approver count below 2
+#   - two build steps, one per environment
+#   - no test step
+#   - deploys with no strategy, no rollback, no smoke test
+
+stages:
+  - build
+  - scan
+  - deploy
+
+build-staging:
+  stage: build
+  script:
+    - docker build -t app:staging .
+
+build-production:
+  stage: build
+  script:
+    - docker build -t app:production .
+
+scan:
+  stage: scan
+  script:
+    - grype app:production
+
+deploy:
+  stage: deploy
+  environment:
+    name: production
+  variables:
+    ARM_CLIENT_SECRET: "$LEGACY_SECRET"
+    DB_PASSWORD: "hunter2SuperSecret"
+  script:
+    - az login --service-principal --client-secret: notfederated
+    - deploy app:production
+
+.merge_request_policy:
+  approvals_before_merge: 1

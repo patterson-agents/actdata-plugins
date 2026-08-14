@@ -1,0 +1,50 @@
+# Claude Code in GitLab CI: Claude API provider.
+#
+# Prerequisite: ANTHROPIC_API_KEY added as a masked CI/CD variable under
+# Settings > CI/CD > Variables. Protect it as well if this job only runs on
+# protected refs.
+#
+# Start with the `web` rule alone. A manual trigger cannot be invoked by anyone
+# who can comment, which makes it the right shape for confirming credentials and
+# permissions before automating.
+
+stages:
+  - ai
+
+claude:
+  stage: ai
+  image: node:24-alpine3.21
+  # Adjust rules to fit how you want to trigger the job:
+  # - manual runs
+  # - merge request events
+  # - web/API triggers when a comment contains '@claude'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    GIT_STRATEGY: fetch
+  before_script:
+    - apk update
+    - apk add --no-cache git curl bash
+    - curl -fsSL https://claude.ai/install.sh | bash
+    # The installer places claude in ~/.local/bin, which isn't on PATH in this image
+    - export PATH="$HOME/.local/bin:$PATH"
+  script:
+    # Optional: start a GitLab MCP server if your setup provides one.
+    # This is the runner-image binary, NOT the HTTP endpoint at /api/v4/mcp.
+    - /bin/gitlab-mcp-server || true
+    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads
+    - echo "$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT"
+    - >
+      claude
+      -p "${AI_FLOW_INPUT:-'Review this MR and implement the requested changes'}"
+      --permission-mode acceptEdits
+      --allowedTools "Bash Read Edit Write mcp__gitlab"
+      --debug
+
+  # Not in the upstream example, and worth adding before this job runs
+  # unattended: without a turn cap and a timeout, a task that fails to converge
+  # bounds its own cost at nothing.
+  #
+  #   timeout: 30m
+  # and add --max-turns N to the claude invocation above.

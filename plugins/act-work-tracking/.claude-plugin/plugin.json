@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "act-work-tracking",
+  "version": "0.1.0",
+  "description": "Zoho Projects work tracking and operations reporting. Covers the task-versus-issue distinction, drafting templates, the REST API's quirks, bulk creation, weekly status structure, and the writing conventions that keep issues and reports actionable. Reads portal and project IDs from a site-local settings file.",
+  "author": {
+    "name": "Daniel Bodnar",
+    "email": "dbodnar@pattersonvet.com"
+  },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins",
+  "repository": "https://github.com/patterson-agents/actdata-plugins",
+  "license": "LicenseRef-ACT-Internal",
+  "keywords": [
+    "zoho",
+    "zoho-projects",
+    "issue-tracking",
+    "backlog",
+    "status-reporting",
+    "technical-writing",
+    "project-management",
+    "operations"
+  ]
+}
