@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          # scripts/check-size.ts and check-no-binaries.ts read tracked files via
+          # `git ls-files`, and scripts/tests/run-tests.sh creates throwaway git repos.
+          # A full checkout keeps both honest.
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run the repository gate battery
+        run: sh scripts/verify-all.sh
+
+      # The `claude` CLI is not present on GitHub-hosted runners by default. This step is
+      # marked continue-on-error so a missing CLI does not block the real gate above,
+      # while still surfacing a manifest schema error when the CLI is available.
+      # [TBD: install the CLI here once the org settles on a supported install path.]
+      - name: Validate marketplace manifest (claude plugin validate)
+        continue-on-error: true
+        run: |
+          if command -v claude >/dev/null 2>&1; then
+            claude plugin validate .
+          else
+            echo "claude CLI not found on this runner; skipping (see [TBD] note in ci.yml)."
+          fi

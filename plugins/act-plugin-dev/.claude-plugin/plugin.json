@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "act-plugin-dev",
+  "version": "0.1.0",
+  "description": "ACT Data's plugin development toolkit. Seven skills covering plugin structure, skills, commands, agents, hooks, MCP integration, and plugin settings, plus three review agents and a guided end-to-end creation workflow. Adapted from Claude Code's plugin-dev for the actdata-plugins marketplace: Bun, kebab-case naming, and marketplace registration built into the workflow.",
+  "author": {
+    "name": "Daniel Bodnar",
+    "email": "dbodnar@pattersonvet.com"
+  },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins",
+  "repository": "https://github.com/patterson-agents/actdata-plugins",
+  "license": "LicenseRef-ACT-Internal",
+  "keywords": [
+    "plugin-development",
+    "skills",
+    "commands",
+    "agents",
+    "hooks",
+    "mcp",
+    "marketplace",
+    "scaffolding"
+  ]
+}

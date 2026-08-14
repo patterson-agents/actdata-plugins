@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "gitlab-standards",
+  "version": "0.1.0",
+  "description": "ACT's CI/CD and DevOps skills",
+  "author": {
+    "name": "Daniel Bodnar",
+    "email": "dbodnar@pattersonvet.com"
+  },
+  "skills": [
+    "./"
+  ],
+  "channels": [
+    {
+      "server": "gitlab-standards",
+      "displayName": "gitlab-standards"
+    }
+  ]
+}

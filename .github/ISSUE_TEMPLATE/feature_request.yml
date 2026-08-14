@@ -1,0 +1,45 @@
+name: Feature request
+description: Propose an enhancement to an existing plugin, skill, agent, hook, or script.
+title: "[feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a **new plugin**, use the new-plugin-proposal template instead -- it collects the
+        provenance information a change of that size needs. This template is for enhancing
+        something that already exists, including adding a skill to an existing plugin.
+
+  - type: input
+    id: location
+    attributes:
+      label: Affected path
+      description: The existing plugin, skill, agent, command, hook, or script this would change.
+      placeholder: plugins/act-plugin-dev/skills/plugin-structure
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's missing or limited today
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What you'd want to see instead.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: This does not require a new top-level plugin (if it does, use the new-plugin-proposal template instead).
+          required: false
+        - label: If this adds a skill, I understand its directory name and `SKILL.md` frontmatter `name` must be the identical kebab-case string.
+          required: false

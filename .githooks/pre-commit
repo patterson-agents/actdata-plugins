@@ -1,0 +1,56 @@
+#!/bin/sh
+# .githooks/pre-commit -- fast local gate for actdata-plugins.
+#
+# Runs the full gate battery before a commit is created. Unlike patterson-corp's
+# equivalent, this is NOT a narrower subset: this repository's gate is cheap (two small
+# validators and one test suite, no build step), so there is no reason to run less of it
+# locally than CI runs.
+#
+# The one thing this adds over `sh scripts/verify-all.sh` is a secret scan of the working
+# tree, which CI cannot usefully do after the fact.
+#
+# Enable with:  git config core.hooksPath .githooks
+# Bypass deliberately with:  git commit --no-verify
+#
+# POSIX sh only. Fails loud and stops the commit.
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(git rev-parse --show-toplevel)" && pwd)
+cd "$ROOT"
+
+# --- secret scanning ---------------------------------------------------------------
+# Graceful skip when a scanner is not installed (install with: mise use trufflehog trivy).
+# GitHub push protection remains the backstop.
+if command -v trufflehog >/dev/null 2>&1; then
+  echo "pre-commit: trufflehog secret scan..."
+  if ! trufflehog git "file://$ROOT" --since-commit HEAD --results=verified,unknown \
+       --fail --no-update >/dev/null 2>&1; then
+    echo "pre-commit: FAILED trufflehog found a secret in the pending changes." >&2
+    echo "pre-commit: run 'trufflehog git file://. --since-commit HEAD --results=verified,unknown --no-update' to see it. commit blocked." >&2
+    exit 1
+  fi
+else
+  echo "pre-commit: trufflehog not installed -- skipping secret scan (mise use trufflehog)."
+fi
+
+if command -v trivy >/dev/null 2>&1; then
+  echo "pre-commit: trivy secret scan..."
+  if ! trivy fs --scanners secret --exit-code 1 --quiet \
+       --skip-dirs .tmp --skip-dirs node_modules "$ROOT" >/dev/null 2>&1; then
+    echo "pre-commit: FAILED trivy found a secret in the working tree." >&2
+    echo "pre-commit: run 'trivy fs --scanners secret --skip-dirs .tmp --skip-dirs node_modules .' to see it. commit blocked." >&2
+    exit 1
+  fi
+else
+  echo "pre-commit: trivy not installed -- skipping secret scan (mise use trivy)."
+fi
+
+# --- the gate battery --------------------------------------------------------------
+echo "pre-commit: running scripts/verify-all.sh..."
+if ! sh scripts/verify-all.sh; then
+  echo "pre-commit: FAILED scripts/verify-all.sh" >&2
+  echo "pre-commit: commit blocked. Fix the failure above, or use --no-verify deliberately." >&2
+  exit 1
+fi
+
+echo "pre-commit: OK"

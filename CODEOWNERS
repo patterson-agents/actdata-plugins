@@ -1,0 +1,30 @@
+# CODEOWNERS for actdata-plugins
+#
+# Every top-level path resolves to a reviewing team so GitHub can request review
+# automatically.
+#
+# [TBD: real team handles not confirmed. The handles below are placeholders pending
+# whoever owns ACT Data's GitHub org structure assigning real ones. A CODEOWNERS entry
+# naming a team that does not exist silently requests no review at all -- verify these
+# resolve before relying on them as a control.]
+#
+# Last match wins, so the default at the top is overridden by every more specific entry.
+
+* @patterson-agents/actdata
+
+/plugins/act-plugin-dev/        @patterson-agents/actdata-platform
+
+/.claude-plugin/                @patterson-agents/actdata-platform
+/scripts/                       @patterson-agents/actdata-platform
+/docs/                          @patterson-agents/actdata-platform
+
+/.github/                       @patterson-agents/actdata-platform
+/.githooks/                     @patterson-agents/actdata-platform
+
+/CONTRIBUTING.md                @patterson-agents/actdata-platform
+/CODE_OF_CONDUCT.md             @patterson-agents/actdata-platform
+/SECURITY.md                    @patterson-agents/actdata-platform
+/CODEOWNERS                     @patterson-agents/actdata-platform
+/LICENSE                        @patterson-agents/actdata-platform
+/README.md                      @patterson-agents/actdata-platform
+/CLAUDE.md                      @patterson-agents/actdata-platform

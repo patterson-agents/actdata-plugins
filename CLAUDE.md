@@ -1,0 +1,101 @@
+# CLAUDE.md
+
+Guidance for Claude Code when working in this repository.
+
+## What this repository is
+
+`actdata-plugins` is a **Claude Code plugin marketplace**, not an application. There is no server,
+no library, and no build step. The deliverable is `.claude-plugin/marketplace.json` plus the
+plugins under `plugins/` that it points at.
+
+The single most important consequence: **a plugin that is not registered in
+`.claude-plugin/marketplace.json` does not exist.** It cannot be installed, however complete it
+looks on disk. Creating a plugin directory and registering it are one task, not two.
+
+## The gate
+
+```sh
+sh scripts/verify-all.sh
+```
+
+One script defines every mechanical invariant. CI (`.github/workflows/ci.yml`) and
+`.githooks/pre-commit` both call it. It must print `VERIFY-ALL: PASS` before any change is done.
+
+It checks: every discovered `run-tests.sh`, skill name equals directory name, plugin manifests
+parse and match their directory, marketplace registration and version consistency, no tracked
+binaries, the 2 MiB tracked-byte budget, and no expanded `${CLAUDE_PLUGIN_ROOT}`.
+
+> [!IMPORTANT]
+> `check-size.ts` and `check-no-binaries.ts` read **tracked** files via `git ls-files`. On
+> unstaged work they measure almost nothing and pass trivially. Run `git add -A` before treating a
+> green gate as meaningful.
+
+Also run, for the manifest schema itself:
+
+```sh
+claude plugin validate .
+```
+
+## Conventions that fail the build
+
+| Rule | Detail |
+|---|---|
+| Skill name equals directory | `skills/foo/SKILL.md` must have `name: foo`, kebab-case. Title Case (`name: Foo Bar`) is the usual import defect and fails the gate. |
+| Plugins at `plugins/<name>/` | `metadata.pluginRoot` is `./plugins`. |
+| Version in two places | `plugin.json` and the `marketplace.json` entry must agree. |
+| `${CLAUDE_PLUGIN_ROOT}` literal | Never write a resolved absolute path into a tracked file. |
+| No binaries, 2 MiB budget | SVG exempt; rasters capped at 50 KiB. |
+
+## Conventions checked in review
+
+- **Bun only.** `bun install`, `bun run`, `bunx`, `bun test`. Never npm, yarn, or pnpm. `bun.lock`
+  is the only lockfile.
+- **No `/tmp`.** Scratch goes in the gitignored `.tmp/`. A workspace hook enforces this.
+- **No emoji on ACT-authored surfaces** — READMEs, manifests, commands, agents, docs. Use GFM
+  alerts and tables. Vendored upstream reference content under `plugins/*/skills/*/references/`
+  and `examples/` is exempt; see
+  `plugins/act-plugin-dev/README.md#upstream-and-divergence` for why.
+- **No AI attribution** in commits or pull requests. No `Claude-Session:` trailers, no "Generated
+  with Claude Code" footers, no AI co-author lines.
+- **Conventional commits**, branch off `main`, never commit to `main` directly.
+- **Score new dependencies** with `socket package shallow npm pkg:npm/<name>@<version> --markdown`
+  before adding them. Flag anything under 90.
+
+## Layout
+
+```text
+.claude-plugin/marketplace.json   # the catalog; a plugin is invisible without an entry
+plugins/<name>/
+  .claude-plugin/plugin.json      # no "skills": ["./"] when a skills/ directory exists
+  skills/<skill-name>/SKILL.md    # frontmatter name == directory name
+  agents/*.md  commands/*.md  hooks/hooks.json
+scripts/verify-all.sh             # the gate
+scripts/check-size.ts             # node:* builtins only, run by bun
+scripts/check-no-binaries.ts
+scripts/tests/run-tests.sh        # fixtures generated into .tmp/, never committed
+docs/assets/                      # placeholder brand marks -- see its README
+docs/decisions/                   # ADRs
+```
+
+## Building a plugin
+
+Prefer the guided workflow over doing it by hand — it registers the marketplace entry and runs the
+gate as part of the process:
+
+```text
+/act-plugin-dev:create-plugin
+```
+
+`act-plugin-dev` also carries the reference skills (`plugin-structure`, `skill-development`,
+`command-development`, `agent-development`, `hook-development`, `mcp-integration`,
+`plugin-settings`) and the `plugin-validator` and `skill-reviewer` agents.
+
+## Things that are deliberately unfinished
+
+Do not "fix" these without asking; they are recorded gaps, not oversights.
+
+- `docs/assets/` holds an **invented placeholder** wordmark. No ACT brand assets exist.
+- `.gitlab/` is empty. No ACT GitLab CI conventions were available to base a pipeline on.
+- `plugins/gitlab-standards/` is a `claude plugin init` scaffold, correctly left unregistered.
+- `plugins/code-review/`, `plugins/standards/`, `plugins/git-workflows/` are empty shells.
+- `LicenseRef-ACT-Internal` is a provisional identifier; ACT's licensing posture is unconfirmed.

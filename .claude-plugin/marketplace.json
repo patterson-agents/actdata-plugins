@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "actdata-plugins",
+  "description": "ACT Data's agent plugin catalog. Installable capability for the teams building and operating ACT Data's software: plugin development, engineering standards, and delivery workflow.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "ACT Data",
+    "url": "https://github.com/patterson-agents"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "act-plugin-dev",
+      "source": "./plugins/act-plugin-dev",
+      "displayName": "ACT Plugin Development Toolkit",
+      "description": "Everything needed to build a plugin for this marketplace: seven skills covering plugin structure, skills, commands, agents, hooks, MCP integration and plugin settings; three review agents (agent-creator, plugin-validator, skill-reviewer); and a guided eight-phase creation workflow that registers the finished plugin in the marketplace. Relevant to anyone authoring or reviewing a Claude Code plugin, skill, slash command, subagent, or hook, or wiring an MCP server into a plugin.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Daniel Bodnar"
+      },
+      "license": "LicenseRef-ACT-Internal",
+      "category": "development",
+      "keywords": [
+        "plugin-development",
+        "skills",
+        "commands",
+        "agents",
+        "hooks",
+        "mcp",
+        "marketplace",
+        "scaffolding",
+        "developer",
+        "platform"
+      ],
+      "relevance": {
+        "topic": "Claude Code plugin development",
+        "signals": {
+          "filesRead": [
+            "**/.claude-plugin/plugin.json",
+            "**/.claude-plugin/marketplace.json",
+            "**/skills/*/SKILL.md",
+            "**/hooks/hooks.json",
+            "**/.mcp.json",
+            "**/commands/*.md",
+            "**/agents/*.md"
+          ]
+        }
+      }
+    }
+  ]
+}

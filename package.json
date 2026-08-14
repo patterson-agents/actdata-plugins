@@ -1,0 +1,15 @@
+{
+  "name": "actdata-plugins",
+  "private": true,
+  "type": "module",
+  "description": "ACT Data's Claude Code plugin marketplace. Not a library -- see README.md.",
+  "scripts": {
+    "verify": "sh scripts/verify-all.sh",
+    "test": "sh scripts/tests/run-tests.sh",
+    "check:size": "bun scripts/check-size.ts .",
+    "check:binaries": "bun scripts/check-no-binaries.ts ."
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14"
+  }
+}

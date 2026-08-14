@@ -1,0 +1,11 @@
+{
+  "example": {
+    "command": "example-language-server",
+    "args": [
+      "--stdio"
+    ],
+    "extensionToLanguage": {
+      ".example": "example"
+    }
+  }
+}

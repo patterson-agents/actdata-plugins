@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" width="320" height="64" role="img" aria-label="ACT Data">
+  <title>ACT Data</title>
+  <rect x="0" y="8" width="48" height="48" rx="8" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.25"/>
+  <path d="M14 44 L24 20 L34 44" fill="none" stroke="#00A8E1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="18" y1="36" x2="30" y2="36" stroke="#00A8E1" stroke-width="4" stroke-linecap="round"/>
+  <text x="64" y="42" font-family="'Proxima Nova','Helvetica Neue',Arial,sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">ACT Data</text>
+  <text x="64" y="56" font-family="'Proxima Nova','Helvetica Neue',Arial,sans-serif" font-size="10" font-weight="500" fill="#B9BBBD" letter-spacing="1.2">AGENT PLUGIN CATALOG</text>
+</svg>

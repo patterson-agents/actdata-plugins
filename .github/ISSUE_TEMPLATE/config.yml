@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/patterson-agents/actdata-plugins/blob/main/CONTRIBUTING.md
+    about: Read this before proposing a plugin, a skill, or any change -- it covers the conventions the gate enforces.
+  - name: Security vulnerability reporting
+    url: https://github.com/patterson-agents/actdata-plugins/blob/main/SECURITY.md
+    about: Report a vulnerability privately. Do not open a public issue for one.

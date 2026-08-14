@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in a plugin, skill, agent, command, or validator script is incorrect or broken.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. If this is a **security** issue, stop -- follow
+        `SECURITY.md` instead of filing a public issue.
+
+  - type: input
+    id: location
+    attributes:
+      label: Affected path
+      description: The plugin, skill, agent, command, or script this affects.
+      placeholder: plugins/act-plugin-dev/skills/hook-development
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Exact command(s) run, or the exact skill-triggering prompt, and the output.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of bug
+      options:
+        - Plugin will not install, or does not appear after installing
+        - Skill does not trigger when it should (or triggers when it should not)
+        - Incorrect or stale guidance in a skill, agent, or command
+        - Marketplace manifest problem (registration, version drift, bad source path)
+        - Validator or gate script (verify-all.sh, check-size.ts, check-no-binaries.ts) failure
+        - Drift from upstream in a forked plugin
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked this is not already covered by an existing `[TBD]` marker or a documented gap in the relevant README.
+          required: false
+        - label: I staged my changes and ran `sh scripts/verify-all.sh`; the output (if relevant) is included above.
+          required: false

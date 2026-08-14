@@ -1,0 +1,89 @@
+name: New plugin proposal
+description: Propose a new plugin for the actdata-plugins marketplace.
+title: "[plugin]: "
+labels: ["plugin-proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A plugin is a durable capability worth installing on its own. If what you have in mind is
+        one skill inside something that already exists, propose it as a feature request instead.
+
+        Read `CONTRIBUTING.md` first. Note that the guided workflow
+        (`/act-plugin-dev:create-plugin`) does most of the mechanical work once this is agreed.
+
+  - type: input
+    id: name
+    attributes:
+      label: Proposed plugin name
+      description: kebab-case. It becomes the directory name under `plugins/` and must match the manifest `name`.
+      placeholder: deploy-runbooks
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve
+      description: Describe the situation someone is in when this plugin would help. Concrete beats abstract.
+    validations:
+      required: true
+
+  - type: textarea
+    id: audience
+    attributes:
+      label: Who uses it, and when
+      description: Which roles, and at what point in their work. This becomes the `relevance` block and the marketplace description.
+    validations:
+      required: true
+
+  - type: textarea
+    id: components
+    attributes:
+      label: Components
+      description: |
+        Rough shape. Skills, commands, agents, hooks, MCP servers -- how many of each and what each does.
+      placeholder: |
+        Skills:   2 -- runbook authoring conventions, incident escalation paths
+        Commands: 1 -- /deploy-runbooks:new
+        Agents:   1 -- runbook-reviewer
+        Hooks:    0
+        MCP:      0
+    validations:
+      required: true
+
+  - type: textarea
+    id: overlap
+    attributes:
+      label: Overlap with the existing catalog
+      description: |
+        Which existing plugins come closest, and why this is not a skill added to one of them.
+        Check `.claude-plugin/marketplace.json` and the `plugins/` directory before answering.
+    validations:
+      required: true
+
+  - type: textarea
+    id: sources
+    attributes:
+      label: Where the content comes from
+      description: |
+        The authoritative source for what this plugin will assert -- a runbook, a standard, a wiki page,
+        a team's practice. If part of it has no source, say so; that becomes a `[TBD]` rather than an invention.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: The name is kebab-case and does not collide with an existing directory under `plugins/` or an entry in `.claude-plugin/marketplace.json`.
+          required: true
+        - label: I understand this plugin must be registered in `.claude-plugin/marketplace.json` with a `relevance` block and a version matching its `plugin.json`, or it will not be installable.
+          required: true
+        - label: I understand every skill's directory name and `SKILL.md` frontmatter `name` must be the identical kebab-case string, and that the gate fails on a mismatch.
+          required: true
+        - label: I understand this repository is Bun-only, ships no binaries, and holds to a 2 MiB tracked-byte budget.
+          required: true
+        - label: Where a source is silent, I will write `[TBD: what is missing]` rather than inventing organizational policy.
+          required: true

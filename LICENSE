@@ -1,0 +1,29 @@
+ACT Data — Internal Use License
+SPDX-License-Identifier: LicenseRef-ACT-Internal
+
+Copyright (c) Patterson Companies. All rights reserved.
+
+This repository and its contents (the "Materials") are the confidential and proprietary
+property of Patterson Companies. The Materials are licensed for internal use by Patterson
+Companies and its authorized personnel only.
+
+You may not copy, distribute, publish, sublicense, or disclose the Materials, in whole or
+in part, to any third party outside Patterson Companies without prior written authorization.
+
+THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT.
+
+---
+
+Third-party content
+
+The `plugins/act-plugin-dev/` directory is a fork of the `plugin-dev` plugin distributed
+with Claude Code, version 0.1.0, authored by Daisy Hollman at Anthropic. It is vendored
+here under whatever terms Anthropic distributes it; this internal-use license covers ACT
+Data's modifications to it, not the underlying work. The modifications are recorded in
+`plugins/act-plugin-dev/README.md` under "Upstream and divergence".
+
+[TBD: the license Anthropic applies to the bundled `plugin-dev` plugin has not been
+confirmed. Resolve this before distributing this repository anywhere beyond Patterson
+Companies.]
