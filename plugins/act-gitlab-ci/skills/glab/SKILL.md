@@ -1,7 +1,6 @@
 ---
 name: glab
 description: This skill should be used before running any `glab` or GitLab API command from the shell, and when the user asks to "create a merge request", "comment on an issue", "reply in a review thread", "resolve a discussion", "check the pipeline status", "get the job log", "list my MRs", or mentions glab, `glab api`, discussion IDs, threaded replies, `--reply`, `mr note create`, or CI job traces. Covers issues, merge requests, notes and discussions, pipelines, and raw API calls, including the quoting and stdin rules that make non-interactive use safe. Prefer glab over raw API calls for command-line GitLab work.
-version: 0.1.0
 ---
 
 # GitLab CLI (glab)

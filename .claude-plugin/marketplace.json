@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "actdata-plugins",
   "description": "ACT Data's agent plugin catalog. Installable capability for the teams building and operating ACT Data's software: plugin development, engineering standards, and delivery workflow.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "owner": {
     "name": "ACT Data",
     "url": "https://github.com/patterson-agents"
@@ -16,7 +16,7 @@
       "source": "./plugins/act-plugin-dev",
       "displayName": "ACT Plugin Development Toolkit",
       "description": "Everything needed to build a plugin for this marketplace: seven skills covering plugin structure, skills, commands, agents, hooks, MCP integration and plugin settings; three review agents (agent-creator, plugin-validator, skill-reviewer); and a guided eight-phase creation workflow that registers the finished plugin in the marketplace. Relevant to anyone authoring or reviewing a Claude Code plugin, skill, slash command, subagent, or hook, or wiring an MCP server into a plugin.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Daniel Bodnar"
       },
@@ -54,7 +54,7 @@
       "source": "./plugins/act-platform-engineering",
       "displayName": "ACT Platform Engineering",
       "description": "Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. Seven skills covering database performance, backups and replication, pool health and tuning, drive and kernel diagnostics, hypervisor and VM hygiene, observability coverage and incident response; seven role-based reasoning agents; and nine one-shot assessment commands with green/red criteria. Reads its host inventory from a site-local settings file and ships no environment identifiers. Relevant to anyone diagnosing a database or storage host, planning failover, assessing backups, or running an incident.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Daniel Bodnar"
       },
@@ -94,7 +94,7 @@
       "source": "./plugins/act-work-tracking",
       "displayName": "ACT Work Tracking",
       "description": "Zoho Projects work tracking and operations reporting. Covers the task-versus-issue distinction, drafting templates for both, the REST API's quirks including the Zoho-oauthtoken header and the bugs endpoint, bulk creation from JSON with a credential-free dry run, weekly status structure, and the writing conventions that keep issues and reports actionable. Reads portal and project IDs from a site-local settings file. Relevant to anyone filing engineering work into Zoho Projects, writing a status report, or maintaining an assessment document set.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Daniel Bodnar"
       },
@@ -128,7 +128,7 @@
       "source": "./plugins/act-gitlab-ci",
       "displayName": "ACT GitLab CI/CD",
       "description": "GitLab CI/CD and GitLab tooling for Claude Code. Six skills covering running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers; the GitLab MCP server with its full tool catalogue and version requirements; the glab CLI; CI troubleshooting; and pipeline standards translated to GitLab and marked as derived. Ships a GitLab MCP server configuration, a pipeline security review agent, and a zero-dependency pipeline checker. Relevant to anyone writing a .gitlab-ci.yml, wiring Claude into a pipeline, connecting to GitLab over MCP, or reviewing a pipeline for credential and scan compliance.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Daniel Bodnar"
       },

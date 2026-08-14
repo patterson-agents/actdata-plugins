@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test harness for check-size.ts and check-no-binaries.ts. POSIX sh, no dependencies.
+# Test harness for the repository validators. POSIX sh, no dependencies.
 #
 # Fixtures are generated at run time into throwaway git repositories under a scratch
 # directory, never committed: a real oversized tree or a real font binary living in this
@@ -16,6 +16,7 @@ DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT=$(CDPATH= cd -- "$DIR/../.." && pwd)
 SIZE_CHECK="$DIR/../check-size.ts"
 BIN_CHECK="$DIR/../check-no-binaries.ts"
+COMPAT_CHECK="$DIR/../check-marketplace-compat.ts"
 fail=0
 
 mkdir -p "$ROOT/.tmp"
@@ -153,6 +154,23 @@ expect_exit 2 "$BIN_CHECK" "$WORK/does-not-exist" "missing path is 'could not ev
 # Misuse: wrong argument count.
 bun "$BIN_CHECK" >/dev/null 2>&1
 if [ $? -ne 2 ]; then echo "FAIL no-args: expected exit 2"; fail=1; else echo "ok   no-args (exit 2)"; fi
+
+echo "== check-marketplace-compat.ts =="
+
+compat="$WORK/compat"
+mkdir -p "$compat/.claude-plugin" "$compat/.agents/plugins" "$compat/.github/plugin" \
+  "$compat/plugins/example/.claude-plugin" "$compat/plugins/example/.codex-plugin"
+printf '%s\n' '{"plugins":[{"name":"example","version":"1.0.0","source":"./plugins/example","relevance":{}}]}' > "$compat/.claude-plugin/marketplace.json"
+printf '%s\n' '{"plugins":[{"name":"example","source":{"source":"local","path":"./plugins/example"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Test"}]}' > "$compat/.agents/plugins/marketplace.json"
+printf '%s\n' '{"plugins":[{"name":"example","version":"1.0.0","source":"./plugins/example"}]}' > "$compat/.github/plugin/marketplace.json"
+printf '%s\n' '{"name":"example","version":"1.0.0"}' > "$compat/plugins/example/.claude-plugin/plugin.json"
+printf '%s\n' '{"name":"example","version":"1.0.0"}' > "$compat/plugins/example/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"example","version":"1.0.0"}' > "$compat/plugins/example/plugin.json"
+expect_exit 0 "$COMPAT_CHECK" "$compat" "matching host manifests pass"
+
+printf '%s\n' '{"name":"example","version":"2.0.0"}' > "$compat/plugins/example/plugin.json"
+expect_exit 1 "$COMPAT_CHECK" "$compat" "cross-host version drift fails"
+expect_rule "compat" "$COMPAT_CHECK" "$compat" "cross-host version drift"
 
 [ "$fail" -eq 0 ] && echo "ALL TESTS PASSED" || echo "TESTS FAILED"
 exit "$fail"

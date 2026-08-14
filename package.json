@@ -2,7 +2,7 @@
   "name": "actdata-plugins",
   "private": true,
   "type": "module",
-  "description": "ACT Data's Claude Code plugin marketplace. Not a library -- see README.md.",
+  "description": "ACT Data's plugin marketplace for Claude Code, ChatGPT, Codex, and GitHub Copilot.",
   "scripts": {
     "verify": "sh scripts/verify-all.sh",
     "test": "sh scripts/tests/run-tests.sh",

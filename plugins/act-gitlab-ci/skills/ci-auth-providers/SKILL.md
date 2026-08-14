@@ -1,7 +1,6 @@
 ---
 name: ci-auth-providers
 description: This skill should be used when the user asks "which provider should we use for Claude in CI", "set up Bedrock for GitLab", "configure Workload Identity Federation", "how do I avoid storing an API key", or mentions AWS_ROLE_TO_ASSUME, assume-role-with-web-identity, GCP_WORKLOAD_IDENTITY_PROVIDER, CLAUDE_CODE_USE_BEDROCK, CLAUDE_CODE_USE_VERTEX, id_tokens, or GITLAB_OIDC_TOKEN. Covers the three provider options, their prerequisites and variables, and choosing between them.
-version: 0.1.0
 ---
 
 # CI authentication providers

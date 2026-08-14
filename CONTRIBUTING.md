@@ -1,7 +1,7 @@
 # Contributing to actdata-plugins
 
-`actdata-plugins` is ACT Data's Claude Code plugin marketplace: capability shipped as installable
-plugins. This document is how a person or an agent proposes a change to it.
+`actdata-plugins` is ACT Data's plugin marketplace for Claude Code, ChatGPT, Codex, and GitHub
+Copilot. This document is how a person or an agent proposes a change to it.
 
 ## The short version
 
@@ -24,8 +24,8 @@ checked mechanically; the rest are checked in review.
 | **kebab-case** | Plugin names, skill directory names, command filenames, agent filenames, issue and PR template filenames. |
 | **Skill name equals directory name** | A skill's directory name and its `SKILL.md` frontmatter `name:` must be the identical kebab-case string. This is the single most common defect when importing a skill written elsewhere, because Title Case names (`name: Plugin Structure`) are the norm outside this repository. The gate fails on a mismatch. |
 | **Plugins live at `plugins/<name>/`** | Never at the repository root, never nested deeper. `marketplace.json` declares `metadata.pluginRoot: "./plugins"`. |
-| **Registration is part of shipping** | A plugin with no entry in `.claude-plugin/marketplace.json` is invisible to `claude plugin install`. Every shipped plugin needs an entry with a `relevance` block. A plugin that is still a scaffold should stay unregistered — the gate recognises TODO placeholders and reports it as a draft rather than failing. |
-| **Version in two places** | `plugins/<name>/.claude-plugin/plugin.json` and the plugin's `marketplace.json` entry must carry the same version. Bump both in the same commit; the gate compares them. |
+| **Registration is part of shipping** | Register shipped plugins in `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and `.github/plugin/marketplace.json`. |
+| **Version everywhere** | Keep the Claude, OpenAI, and Copilot manifests and versioned catalog entries synchronized. |
 | **`${CLAUDE_PLUGIN_ROOT}` stays literal** | Every intra-plugin reference uses the literal token, never an absolute path a tool happened to resolve it to on someone's machine. The gate greps for expanded forms and fails on them. |
 | **Bun only** | `bun install`, `bun run`, `bunx`, `bun test`. `bun.lock` is the only lockfile; an `npm`, `yarn`, or `pnpm` lockfile in this repository is a bug to remove. |
 | **No `/tmp`** | Nothing is created or stored under `/tmp` — not scratch files, not build intermediates, not test fixtures. Scratch lives in the repository's gitignored `.tmp/`. This is a Patterson house standard enforced by a workspace hook. |
@@ -57,13 +57,12 @@ registers the marketplace entry, and runs the gate:
 
 By hand, the checklist is:
 
-1. `plugins/<name>/.claude-plugin/plugin.json` — `name` matching the directory, semver `version`,
-   real `description`, `license`.
+1. Create the Claude, OpenAI, and Copilot manifests with matching names and semver versions.
    Do **not** add `"skills": ["./"]` if the plugin has a `skills/` directory; that field is the
    single-skill template shape and breaks auto-discovery.
 2. `plugins/<name>/README.md` — model on `plugins/act-plugin-dev/README.md`.
-3. An entry in `.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`, a `version`
-   matching `plugin.json`, and a `relevance` block.
+3. Add matching entries to all three marketplace files. Keep Claude `relevance` and OpenAI policy
+   metadata intact.
 4. A row in the catalog table in the root `README.md`.
 5. `sh scripts/verify-all.sh` printing `VERIFY-ALL: PASS`.
 6. `claude plugin validate .` clean.

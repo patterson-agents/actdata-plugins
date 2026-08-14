@@ -1,7 +1,6 @@
 ---
 name: zfs-storage
 description: This skill should be used when the user asks to "check ZFS", "assess the pool", "is the pool healthy", "check zpool status", "why is ZFS slow", "tune ZFS for Postgres", "check recordsize", "are we taking snapshots", "check ARC hit ratio", "the pool is filling up", or mentions zpool, zfs get, scrub, vdev, raidz, ARC, L2ARC, sanoid, zfs-auto-snapshot, or write amplification on a database host. Covers pool health and capacity, dataset tuning for PostgreSQL, and snapshot policy.
-version: 0.1.0
 ---
 
 # ZFS Storage

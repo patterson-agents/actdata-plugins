@@ -7,11 +7,11 @@
 
 # actdata-plugins
 
-ACT Data's institutional knowledge, encoded as installable
-[agent plugins](https://code.claude.com/docs/en/plugin-marketplaces).
+ACT Data's institutional knowledge, encoded as installable agent plugins for Claude Code,
+ChatGPT, Codex, and GitHub Copilot.
 
 ![plugins](https://img.shields.io/badge/plugins-4-00A8E1?labelColor=003767)
-![skills](https://img.shields.io/badge/skills-22-003767)
+![skills](https://img.shields.io/badge/skills-50-003767)
 ![agents](https://img.shields.io/badge/agents-12-147EC2)
 ![runtime](https://img.shields.io/badge/runtime-Bun_·_no_build_step-00817D)
 ![gate](https://img.shields.io/badge/gate-verify--all.sh-58585B)
@@ -35,11 +35,8 @@ ACT Data's institutional knowledge, encoded as installable
 
 ## What this is
 
-A Claude Code plugin marketplace for ACT Data. It holds capability that is true across ACT's
-software teams, packaged so an agent working in an ACT repository behaves the way a well-oriented
-ACT colleague would.
-
-Right now it holds one thing: the toolkit for building the rest of it.
+An agent plugin marketplace for ACT Data. It packages shared engineering and operations knowledge
+for Claude Code, ChatGPT, Codex, and GitHub Copilot.
 
 ## Quick start
 
@@ -48,8 +45,9 @@ Right now it holds one thing: the toolkit for building the rest of it.
 > plugin marketplace is, how to get the gate running, what to read in what order, and real first
 > tasks.
 
-```sh
-# inside Claude Code
+### Claude Code
+
+```text
 /plugin marketplace add patterson-agents/actdata-plugins
 /plugin install act-plugin-dev@actdata-plugins
 ```
@@ -71,6 +69,25 @@ Then:
 "how do I write a PreToolUse hook?"                  ← hook-development skill fires
 ```
 
+### ChatGPT and Codex
+
+The ChatGPT desktop app discovers `.agents/plugins/marketplace.json` from the repository. Restart
+the app, open the Plugins Directory, choose **ACT Data Plugins**, and install a plugin. From Codex:
+
+```sh
+codex plugin marketplace add .
+codex plugin add act-plugin-dev@actdata-plugins
+```
+
+### GitHub Copilot
+
+GitHub Copilot CLI reads `.github/plugin/marketplace.json`:
+
+```sh
+copilot plugin marketplace add .
+copilot plugin install act-plugin-dev@actdata-plugins
+```
+
 > [!WARNING]
 > Marketplace names occupy one **flat global namespace**. Registering a second marketplace under
 > the name `actdata-plugins` replaces this one rather than merging with it.
@@ -79,10 +96,10 @@ Then:
 
 | Plugin | What it is | Components |
 |---|---|---|
-| **[`act-plugin-dev`](plugins/act-plugin-dev/)**<br>Development | Everything needed to build a plugin for this marketplace, and the conventions that keep one from breaking at install time. A fork of Claude Code's `plugin-dev`, adapted to ACT's layout, Bun, and marketplace registration. | 7 skills · 3 agents · 1 command |
-| **[`act-platform-engineering`](plugins/act-platform-engineering/)**<br>Operations | Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. Diagnostic commands with green/red criteria, role-based reasoning agents, and incident practice. Reads its host inventory from a site-local settings file and ships no environment identifiers. | 7 skills · 7 agents · 9 commands |
-| **[`act-work-tracking`](plugins/act-work-tracking/)**<br>Workflow | Zoho Projects work tracking and operations reporting: the task-versus-issue distinction, the API's quirks, bulk creation with a credential-free dry run, and the writing conventions that keep issues and reports actionable. | 2 skills · 1 agent · 3 commands |
-| **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD and GitLab tooling: Claude Code as a CI job across three providers, the GitLab MCP server, the `glab` CLI, and pipeline standards translated to GitLab. Ships an MCP server and a zero-dependency pipeline checker. | 6 skills · 1 agent · 3 commands · 1 MCP |
+| **[`act-plugin-dev`](plugins/act-plugin-dev/)**<br>Development | Build and review portable plugins while retaining host-specific guidance for commands, agents, hooks, and MCP. | 11 skills · 3 agents · 1 command |
+| **[`act-platform-engineering`](plugins/act-platform-engineering/)**<br>Operations | Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. | 23 skills · 7 agents · 9 commands |
+| **[`act-work-tracking`](plugins/act-work-tracking/)**<br>Workflow | Zoho Projects work tracking and operations reporting. | 6 skills · 1 agent · 3 commands |
+| **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD jobs, MCP, authentication, troubleshooting, and pipeline standards. | 10 skills · 1 agent · 3 commands · 1 MCP |
 
 ### Not yet shipped
 
@@ -102,11 +119,14 @@ than failing the build. Once a draft has real content, registering it becomes ma
 
 ```text
 actdata-plugins/
-├── .claude-plugin/
-│   └── marketplace.json          # the catalog agents read -- a plugin is invisible without an entry here
+├── .claude-plugin/marketplace.json       # Claude Code catalog
+├── .agents/plugins/marketplace.json      # ChatGPT and Codex catalog
+├── .github/plugin/marketplace.json       # GitHub Copilot catalog
 ├── plugins/
 │   └── act-plugin-dev/
-│       ├── .claude-plugin/plugin.json
+│       ├── .claude-plugin/plugin.json    # Claude manifest
+│       ├── .codex-plugin/plugin.json     # OpenAI manifest
+│       ├── plugin.json                   # Copilot manifest
 │       ├── README.md
 │       ├── skills/<name>/        # SKILL.md · references/ · examples/ · scripts/
 │       ├── agents/
@@ -139,8 +159,8 @@ Load-bearing, not stylistic. `scripts/verify-all.sh` enforces the mechanical one
 | **kebab-case everywhere** | Plugin names, skill directory names, command and agent filenames. |
 | **Skill name equals directory name** | `skills/foo/SKILL.md` must carry `name: foo`. Title Case fails the gate. The most common defect when importing a skill from elsewhere. |
 | **Plugins live at `plugins/<name>/`** | `marketplace.json` declares `metadata.pluginRoot: "./plugins"`. |
-| **Register, or it does not exist** | Every shipped plugin needs a `marketplace.json` entry with a `relevance` block. |
-| **Version in two places** | `plugin.json` and the marketplace entry must agree. Bump both together; the gate checks it. |
+| **Register, or it does not exist** | Every shipped plugin needs entries in the Claude, OpenAI, and Copilot marketplaces. |
+| **Version everywhere** | All host manifests and versioned marketplace entries must agree. The gate checks them. |
 | **`${CLAUDE_PLUGIN_ROOT}` stays literal** | Never an absolute path a tool happened to resolve. The gate greps for expanded forms. |
 | **Bun only** | `bun install`, `bun run`, `bunx`, `bun test`. `bun.lock` is the only lockfile; an npm/yarn/pnpm lockfile here is a bug. |
 | **No `/tmp`** | Scratch goes in the repository's gitignored `.tmp/`. |

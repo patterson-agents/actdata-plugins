@@ -23,12 +23,16 @@ the machinery those rules protect.
 ## The shape of the thing
 
 ```text
-.claude-plugin/marketplace.json     the catalog
+.claude-plugin/marketplace.json     Claude Code catalog
+.agents/plugins/marketplace.json    ChatGPT and Codex catalog
+.github/plugin/marketplace.json     GitHub Copilot catalog
         |
         |  one entry per installable plugin, each with a `source` path
         v
 plugins/<name>/
-    .claude-plugin/plugin.json      the plugin manifest
+    .claude-plugin/plugin.json      Claude Code manifest
+    .codex-plugin/plugin.json       OpenAI manifest
+    plugin.json                     GitHub Copilot manifest
     skills/<skill-name>/SKILL.md    knowledge, loaded on demand
     commands/<name>.md              user-invoked, /plugin-name:command-name
     agents/<name>.md                delegated subagents
@@ -37,8 +41,19 @@ plugins/<name>/
     scripts/                        bundled executables
 ```
 
-Everything above is plain text. There is no compilation, no bundling and no artefact. What is in the
-repository is what gets installed.
+Everything above is plain text. There is no compilation, bundling, or generated artefact. The three
+catalogs describe the same plugin directories in each host's native schema. Reusable behavior lives
+in `skills/`; Claude commands and agents remain host-specific adapters.
+
+### Cross-runtime invariants
+
+- Every shipped plugin appears in all three catalogs.
+- Its directory name and all three manifest names match.
+- Its version matches every manifest and every versioned catalog entry.
+- OpenAI entries include installation, authentication, and category policy metadata.
+- Core workflows do not require commands, agents, or hooks, because ChatGPT executes skills.
+
+`scripts/check-marketplace-compat.ts` enforces the mechanical parts of this contract.
 
 ### The one asymmetry worth memorising
 

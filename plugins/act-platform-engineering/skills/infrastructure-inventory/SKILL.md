@@ -1,7 +1,6 @@
 ---
 name: infrastructure-inventory
 description: This skill should be used when any platform-engineering task needs to know which hosts, databases, or services exist -- when the user says "assess the database", "check the primary", "which hosts do we have", "run this on the replica", "what is our topology", or names a role rather than a machine. It defines where the site inventory lives, how to read it, and the rule that a hostname or address is never invented or assumed. Load it before any command that targets a host.
-version: 0.1.0
 ---
 
 # Infrastructure Inventory
@@ -24,7 +23,8 @@ machine.
 
 ## Where the inventory lives
 
-`.claude/act-platform-engineering.local.md`, relative to the project root. It is gitignored: the
+`.agents/act-platform-engineering.local.md`, relative to the project root. For compatibility with
+existing Claude installations, fall back to `.claude/act-platform-engineering.local.md`. Both are gitignored: the
 repository's `.gitignore` carries `.claude/*.local.md` precisely so a site inventory never lands in
 version control.
 

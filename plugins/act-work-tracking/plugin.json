@@ -1,0 +1,6 @@
+{
+  "name": "act-work-tracking", "version": "0.2.0", "description": "Draft Zoho Projects work and engineering status reports.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["zoho", "issue-tracking", "backlog", "status-reporting", "technical-writing"], "skills": "skills/", "commands": "commands/"
+}

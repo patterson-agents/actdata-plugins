@@ -11,7 +11,8 @@
 
 ---
 
-Documentation for `actdata-plugins`, ACT Data's Claude Code plugin marketplace.
+Documentation for `actdata-plugins`, ACT Data's plugin marketplace for Claude Code, ChatGPT,
+Codex, and GitHub Copilot.
 
 ## Start here
 

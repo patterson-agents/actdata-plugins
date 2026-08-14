@@ -9,7 +9,7 @@
 
 GitLab CI/CD, the GitLab MCP server, the `glab` CLI, and pipeline standards.
 
-![skills](https://img.shields.io/badge/skills-6-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-10-00A8E1?labelColor=003767)
 ![agents](https://img.shields.io/badge/agents-1-003767)
 ![commands](https://img.shields.io/badge/commands-3-147EC2)
 ![mcp](https://img.shields.io/badge/mcp-gitlab-00817D)
@@ -51,7 +51,7 @@ Four related things:
 
 | Component | Count | What it is |
 |---|---|---|
-| Skills | 6 | CI jobs, auth providers, MCP server, `glab`, troubleshooting, standards |
+| Skills | 10 | CI jobs, auth providers, MCP server, `glab`, troubleshooting, standards, and portable command/agent adapters |
 | Agents | 1 | Pipeline security review |
 | Commands | 3 | Set up the job, review a pipeline, connect MCP |
 | MCP servers | 1 | GitLab, over HTTP |

@@ -1,7 +1,6 @@
 ---
 name: gitlab-mcp-server
 description: This skill should be used when the user asks to "connect to the GitLab MCP server", "set up GitLab MCP", "which GitLab MCP tools are available", "what GitLab version do we need for MCP", or mentions /api/v4/mcp, mcp-remote, OAuth Dynamic Client Registration for GitLab, GitLab Duo settings for MCP, or specific tools like create_merge_request, get_pipeline, semantic_code_search. Covers enabling the server, connecting a client, the tool catalogue with version requirements, and the security considerations. For a server that will not connect, use ci-troubleshooting instead.
-version: 0.1.0
 ---
 
 # GitLab MCP server

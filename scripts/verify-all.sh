@@ -199,7 +199,16 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 5. No tracked binaries, no size-budget overrun. The validators have their own TDD
+# 5. Cross-runtime manifests and marketplaces agree.
+# ---------------------------------------------------------------------------
+if bun "$ROOT/scripts/check-marketplace-compat.ts" "$ROOT"; then
+  pass "Claude + OpenAI + Copilot marketplace compatibility"
+else
+  fail "Claude + OpenAI + Copilot marketplace compatibility"
+fi
+
+# ---------------------------------------------------------------------------
+# 6. No tracked binaries, no size-budget overrun. The validators have their own TDD
 #    suite (scripts/tests/run-tests.sh, already run in step 1); here they run against
 #    the whole repository, which is their real job.
 # ---------------------------------------------------------------------------
@@ -216,7 +225,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. No expanded ${CLAUDE_PLUGIN_ROOT}. An absolute filesystem path immediately followed
+# 7. No expanded ${CLAUDE_PLUGIN_ROOT}. An absolute filesystem path immediately followed
 #    by /plugins|/skills|/hooks means some tool wrote a resolved path back into a tracked
 #    file instead of leaving the token literal.
 #

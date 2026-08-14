@@ -1,7 +1,6 @@
 ---
 name: zoho-projects
 description: This skill should be used when the user asks to "create a Zoho task", "draft an issue", "add this to the backlog", "file this in Zoho", "bulk create issues", "what's the difference between a task and an issue", or mentions Zoho Projects, the bugs API, portal IDs, project IDs, Zoho-oauthtoken, or turning assessment findings into tracked work items. Covers the task-versus-issue distinction, drafting templates, the API's quirks, and bulk creation.
-version: 0.1.0
 ---
 
 # Zoho Projects
@@ -11,6 +10,7 @@ Turning work into tracked items, and the API quirks involved in getting them the
 ## Configuration
 
 Portal ID, project IDs, prefixes and the default assignee come from
+`.agents/act-work-tracking.local.md`, falling back to the legacy
 `.claude/act-work-tracking.local.md`. This plugin ships none of them.
 
 If the file is absent, ask the user to create it from the template in the plugin README. Do not

@@ -1,7 +1,6 @@
 ---
 name: claude-code-ci-jobs
 description: This skill should be used when the user asks to "run Claude in GitLab CI", "set up the Claude job", "add Claude to my pipeline", "make @claude work on merge requests", "trigger Claude from a comment", or mentions AI_FLOW_INPUT, AI_FLOW_CONTEXT, gitlab-mcp-server in a job, --permission-mode acceptEdits, --allowedTools, or the pipeline trigger API for AI jobs. Covers job definition, trigger rules, mention-driven workflows, CLI flags, cost controls and job-level limits.
-version: 0.1.0
 ---
 
 # Claude Code as a GitLab CI job

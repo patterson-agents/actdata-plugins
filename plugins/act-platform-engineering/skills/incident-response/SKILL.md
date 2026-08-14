@@ -1,7 +1,6 @@
 ---
 name: incident-response
 description: This skill should be used during or after an outage -- when the user says "the database is down", "we have an incident", "production is broken", "help me run this incident", "write a postmortem", "write a runbook", "document this procedure", or mentions blameless postmortem, incident timeline, severity, root cause, action items, or failover procedure documentation. Covers running an incident, writing the postmortem afterwards, and turning procedures into runbooks.
-version: 0.1.0
 ---
 
 # Incident Response

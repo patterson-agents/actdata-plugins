@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "act-gitlab-ci",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "GitLab CI/CD and GitLab tooling for Claude Code. Covers running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers, the GitLab MCP server, the glab CLI, and pipeline standards adapted for GitLab. Includes a zero-dependency pipeline validator.",
   "author": {
     "name": "Daniel Bodnar",

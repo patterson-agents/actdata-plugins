@@ -1,7 +1,6 @@
 ---
 name: postgres-operations
 description: This skill should be used when the user asks to "assess Postgres", "check the database", "why is the database slow", "check replication", "is replication lagging", "are backups working", "check WAL archiving", "find slow queries", "is autovacuum keeping up", "check for bloat", "review Postgres configuration", or mentions pg_stat_statements, replication slots, WAL shipping, failover readiness, table bloat, or connection exhaustion. Provides diagnostic commands with green/red criteria for PostgreSQL performance, backup and recovery, and replication and high availability.
-version: 0.1.0
 ---
 
 # PostgreSQL Operations
@@ -12,7 +11,8 @@ read-only unless explicitly marked otherwise.
 ## Before running anything
 
 Resolve the target host and database from the site inventory. See the `infrastructure-inventory`
-skill: arguments first, then `.claude/act-platform-engineering.local.md`, then ask. **Never assume a
+skill: arguments first, then `.agents/act-platform-engineering.local.md`, then the legacy
+`.claude/act-platform-engineering.local.md`, then ask. **Never assume a
 hostname or database name.**
 
 Commands below use `$DB` for the database. Set it once from the resolved inventory value:

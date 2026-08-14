@@ -1,7 +1,6 @@
 ---
 name: linux-host-tuning
 description: This skill should be used when the user asks to "check the disks", "check SMART", "are the drives failing", "check drive wear", "assess the kernel", "check sysctl", "is swappiness set", "check transparent huge pages", "check the I/O scheduler", "check ulimits", or mentions nvme smart-log, smartctl, percentage_used, PLP, vm.swappiness, dirty_ratio, overcommit, THP, NUMA, or file descriptor limits on a database or storage host. Covers drive health assessment and kernel and sysctl tuning.
-version: 0.1.0
 ---
 
 # Linux Host Tuning

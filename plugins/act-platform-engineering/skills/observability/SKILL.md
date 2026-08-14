@@ -1,7 +1,6 @@
 ---
 name: observability
 description: This skill should be used when the user asks "where are we on the observability rollout", "is Netdata up on all servers", "check Grafana", "observability status", "what are we not monitoring", "do we have centralized logs", "what should we alert on", or mentions Netdata, Grafana, Zabbix, Prometheus, dashboards, metric coverage, log aggregation, or monitoring blind spots. Covers assessing observability coverage across a fleet and deciding what is worth monitoring.
-version: 0.1.0
 ---
 
 # Observability

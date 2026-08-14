@@ -12,7 +12,7 @@ One script. CI (`.github/workflows/ci.yml`), the GitLab mirror (`.gitlab-ci.yml`
 ## Table of contents
 
 - [The staging trap](#the-staging-trap)
-- [The six checks](#the-six-checks)
+- [The seven checks](#the-seven-checks)
 - [What the gate does not check](#what-the-gate-does-not-check)
 - [The validators](#the-validators)
 - [Writing a test suite](#writing-a-test-suite)
@@ -33,7 +33,7 @@ One script. CI (`.github/workflows/ci.yml`), the GitLab mirror (`.gitlab-ci.yml`
 This catches everyone once. A new plugin that is entirely untracked will sail through both validators
 while contributing zero bytes and zero binaries to their view of the tree.
 
-## The six checks
+## The seven checks
 
 `verify-all.sh` resolves its own path, `cd`s to the repository root and runs these in order. Each
 prints `PASS` or `FAIL`; the script exits non-zero if any failed.
@@ -118,11 +118,17 @@ note: <name> is still a scaffold (TODO placeholders); correctly unregistered
 >
 > The scan reads `.md` files only. TODO markers in `.ts` or `.json` do not mark a draft.
 
-### 5. No binaries, and the size budget
+### 5. Cross-runtime marketplace compatibility
+
+`scripts/check-marketplace-compat.ts` compares the Claude, OpenAI, and GitHub Copilot catalogs and
+plugin manifests. It checks registration, names, versions, source paths, and required OpenAI policy
+metadata.
+
+### 6. No binaries, and the size budget
 
 Both validators run against the whole repository. See [The validators](#the-validators).
 
-### 6. No expanded `${CLAUDE_PLUGIN_ROOT}`
+### 7. No expanded `${CLAUDE_PLUGIN_ROOT}`
 
 ```sh
 git grep -nE '(/home/|/workspaces/)[^"'"'"' ]*/(plugins|skills|hooks)/' -- .
