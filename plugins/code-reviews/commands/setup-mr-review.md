@@ -21,9 +21,9 @@ From the first word of `$ARGUMENTS`, or ask:
 
 ## gitlab-ci
 
-1. Copy from the plugin into the repository at `.gitlab/ai-review/`:
+1. Copy from the plugin into the repository at `.gitlab/codereview/`:
    - `${CLAUDE_PLUGIN_ROOT}/scripts/post-mr-review.ts`
-   - `${CLAUDE_PLUGIN_ROOT}/scripts/ai-review.sh`
+   - `${CLAUDE_PLUGIN_ROOT}/scripts/codereview.sh`
    - `${CLAUDE_PLUGIN_ROOT}/skills/mr-review-agent/references/review-rubric.md`
    - `${CLAUDE_PLUGIN_ROOT}/skills/mr-review-agent/examples/review-agent.yaml`
 
@@ -33,12 +33,12 @@ From the first word of `$ARGUMENTS`, or ask:
 2. Read the repository's `.gitlab-ci.yml` if there is one and match its stage names and
    conventions. Then add the job from
    `${CLAUDE_PLUGIN_ROOT}/skills/mr-review-agent/examples/mr-review-job.yml`, adapting:
-   - `AI_REVIEW_MODE` from the second argument (default `inline`).
-   - `AI_REVIEW_ENGINE` from the third argument (default `docker-agent`).
+   - `CODEREVIEW_MODE` from the second argument (default `inline`).
+   - `CODEREVIEW_ENGINE` from the third argument (default `docker-agent`).
    - Keep `timeout`, `allow_failure: true`, `interruptible: true`, and the draft-skip rules; they
      are cost and safety bounds, not decoration.
 
-3. If the engine is `docker-agent`, set `model:` in `.gitlab/ai-review/review-agent.yaml` to the
+3. If the engine is `docker-agent`, set `model:` in `.gitlab/codereview/review-agent.yaml` to the
    user's provider and model. Ask rather than guess the provider.
 
 4. Tell the user which CI/CD variables to create under Settings, CI/CD, Variables. Never handle
@@ -53,16 +53,16 @@ From the first word of `$ARGUMENTS`, or ask:
 
 ## git-hook
 
-1. Copy `post-mr-review.ts`, `ai-review.sh`, `review-rubric.md`, and `review-agent.yaml` to
-   `.gitlab/ai-review/` as above (the harness and hook resolve them there).
+1. Copy `post-mr-review.ts`, `codereview.sh`, `review-rubric.md`, and `review-agent.yaml` to
+   `.gitlab/codereview/` as above (the harness and hook resolve them there).
 2. Install `${CLAUDE_PLUGIN_ROOT}/skills/mr-review-agent/examples/git-hook-pre-push.sh`:
    - If the repository uses a hook manager (lefthook, husky, `core.hooksPath`), add it there and
      say where.
    - Otherwise copy it to `.git/hooks/pre-push` and mark it executable. Note that `.git/hooks` is
      per-clone and not versioned, so each contributor installs it themselves.
-3. State the defaults: advisory (findings print, the push proceeds), `AI_REVIEW_BLOCKING=1` gates,
+3. State the defaults: advisory (findings print, the push proceeds), `CODEREVIEW_BLOCKING=1` gates,
    `git push --no-verify` bypasses, and the engine is auto-detected from PATH unless
-   `AI_REVIEW_ENGINE` is set.
+   `CODEREVIEW_ENGINE` is set.
 
 ## copilot
 

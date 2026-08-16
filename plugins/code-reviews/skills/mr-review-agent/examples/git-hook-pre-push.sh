@@ -2,18 +2,18 @@
 # pre-push -- AI-review the commits about to be pushed.
 #
 # Install: copy to .git/hooks/pre-push and mark executable, or point a hook
-# manager (lefthook, husky, core.hooksPath) at it. Requires ai-review.sh from
-# the same review bundle; adjust AI_REVIEW_SH if it lives elsewhere.
+# manager (lefthook, husky, core.hooksPath) at it. Requires codereview.sh from
+# the same review bundle; adjust CODEREVIEW_SH if it lives elsewhere.
 #
 # Advisory by default: findings print, the push proceeds. Set
-# AI_REVIEW_BLOCKING=1 to abort the push when a blocker is found. Either way,
+# CODEREVIEW_BLOCKING=1 to abort the push when a blocker is found. Either way,
 # `git push --no-verify` skips the hook entirely.
 
-AI_REVIEW_SH="${AI_REVIEW_SH:-.gitlab/ai-review/ai-review.sh}"
+CODEREVIEW_SH="${CODEREVIEW_SH:-.gitlab/codereview/codereview.sh}"
 ZERO=0000000000000000000000000000000000000000
 
-if [ ! -f "$AI_REVIEW_SH" ]; then
-  echo "pre-push: $AI_REVIEW_SH not found; skipping AI review." >&2
+if [ ! -f "$CODEREVIEW_SH" ]; then
+  echo "pre-push: $CODEREVIEW_SH not found; skipping AI review." >&2
   exit 0
 fi
 
@@ -30,10 +30,10 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   fi
   [ -n "$base" ] || continue
 
-  sh "$AI_REVIEW_SH" "$base...$local_sha" || status=1
+  sh "$CODEREVIEW_SH" "$base...$local_sha" || status=1
 done
 
 # Advisory unless the user opted into gating: an engine failure or a finding
 # must not strand a push by default.
-[ "${AI_REVIEW_BLOCKING:-0}" = "1" ] || exit 0
+[ "${CODEREVIEW_BLOCKING:-0}" = "1" ] || exit 0
 exit $status

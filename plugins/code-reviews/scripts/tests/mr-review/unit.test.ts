@@ -105,14 +105,14 @@ describe("resolveMode", () => {
     expect(resolveMode(undefined, true).mode).toBe("inline");
   });
   test("rejects unknown modes instead of escalating to inline", () => {
-    expect(() => resolveMode("summry", true)).toThrow("unknown AI_REVIEW_MODE");
+    expect(() => resolveMode("summry", true)).toThrow("unknown CODEREVIEW_MODE");
   });
 });
 
 describe("engineSpec", () => {
   test("each named engine produces its documented argv shape", () => {
     expect(engineSpec("docker-agent", {}).argv).toEqual([
-      "docker-agent", "run", "--exec", ".gitlab/ai-review/review-agent.yaml", "--json", "--safety", "restricted", "-",
+      "docker-agent", "run", "--exec", ".gitlab/codereview/review-agent.yaml", "--json", "--safety", "restricted", "-",
     ]);
     expect(engineSpec("claude", {}).argv).toEqual([
       "claude", "-p", "--output-format", "json", "--max-turns", "25", "--allowedTools", "Read Grep Glob",
@@ -121,18 +121,18 @@ describe("engineSpec", () => {
     expect(engineSpec("copilot", {})).toEqual({ argv: ["copilot", "-p"], promptVia: "arg" });
   });
 
-  test("AI_REVIEW_ENGINE_CMD runs through a shell, matching ai-review.sh", () => {
-    const spec = engineSpec("docker-agent", { AI_REVIEW_ENGINE_CMD: "my-engine --flag 'quoted arg'" });
+  test("CODEREVIEW_ENGINE_CMD runs through a shell, matching codereview.sh", () => {
+    const spec = engineSpec("docker-agent", { CODEREVIEW_ENGINE_CMD: "my-engine --flag 'quoted arg'" });
     expect(spec.argv).toEqual(["sh", "-c", "my-engine --flag 'quoted arg'"]);
     expect(spec.promptVia).toBe("stdin");
   });
 
   test("a whitespace-only override falls back to the named engine", () => {
-    expect(engineSpec("codex", { AI_REVIEW_ENGINE_CMD: "   " }).argv[0]).toBe("codex");
+    expect(engineSpec("codex", { CODEREVIEW_ENGINE_CMD: "   " }).argv[0]).toBe("codex");
   });
 
   test("an unknown engine throws instead of guessing", () => {
-    expect(() => engineSpec("gpt", {})).toThrow("unknown AI_REVIEW_ENGINE");
+    expect(() => engineSpec("gpt", {})).toThrow("unknown CODEREVIEW_ENGINE");
   });
 });
 

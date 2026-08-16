@@ -1,6 +1,6 @@
 ---
 name: mr-review-agent
-description: This skill should be used when the user asks to "review merge requests automatically", "set up AI code review", "run a review agent in the pipeline", "post review comments on MRs", "review every MR", or mentions docker-agent, AI_REVIEW_MODE, AI_REVIEW_ENGINE, GITLAB_TOKEN for review comments, post-mr-review.ts, ai-review.sh, review-agent.yaml, review-rubric.md, a pre-push AI review hook, inline MR discussions from CI, or Copilot code review instructions. Covers the review contract, the engine matrix, delivery modes, tokens, and re-push semantics.
+description: This skill should be used when the user asks to "review merge requests automatically", "set up AI code review", "run a review agent in the pipeline", "post review comments on MRs", "review every MR", or mentions docker-agent, CODEREVIEW_MODE, CODEREVIEW_ENGINE, GITLAB_TOKEN for review comments, post-mr-review.ts, codereview.sh, review-agent.yaml, review-rubric.md, a pre-push AI review hook, inline MR discussions from CI, or Copilot code review instructions. Covers the review contract, the engine matrix, delivery modes, tokens, and re-push semantics.
 ---
 
 # Automated merge-request review
@@ -16,10 +16,10 @@ the scripts:
 - **`references/review-rubric.md`** -- what a reviewer looks for, the severity scale, and the
   findings JSON contract `{summary, findings: [{path, new_line, old_line, severity, title, body}]}`.
 - **Deterministic delivery scripts** -- `scripts/post-mr-review.ts` (CI, posts to GitLab) and
-  `scripts/ai-review.sh` (local, prints a report). The engine only ever produces findings; the
+  `scripts/codereview.sh` (local, prints a report). The engine only ever produces findings; the
   scripts do everything with side effects.
 
-Engines are swappable via `AI_REVIEW_ENGINE`:
+Engines are swappable via `CODEREVIEW_ENGINE`:
 
 | Engine | Runs | Status |
 |---|---|---|
@@ -28,7 +28,7 @@ Engines are swappable via `AI_REVIEW_ENGINE`:
 | `codex` | `codex exec` | Best effort; verify flags per version |
 | `copilot` | Copilot CLI | Best effort; verify flags per version |
 
-Any other engine: set `AI_REVIEW_ENGINE_CMD` to a command that reads the prompt on stdin and
+Any other engine: set `CODEREVIEW_ENGINE_CMD` to a command that reads the prompt on stdin and
 prints the findings JSON.
 
 ## Four surfaces
@@ -36,22 +36,22 @@ prints the findings JSON.
 | Surface | Entry point | Setup |
 |---|---|---|
 | GitLab CI on every MR | `examples/mr-review-job.yml` running `post-mr-review.ts` | `/code-reviews:setup-mr-review gitlab-ci` |
-| Git hooks / scripts | `scripts/ai-review.sh`, `examples/git-hook-pre-push.sh` | `/code-reviews:setup-mr-review git-hook` |
+| Git hooks / scripts | `scripts/codereview.sh`, `examples/git-hook-pre-push.sh` | `/code-reviews:setup-mr-review git-hook` |
 | In-session, any host | the `review-mr` command | installed with the plugin |
 | GitHub Copilot native review | `examples/copilot-code-review.instructions.md` | `/code-reviews:setup-mr-review copilot` |
 
-The CI scripts are **copied into the target repository** (conventionally `.gitlab/ai-review/`)
+The CI scripts are **copied into the target repository** (conventionally `.gitlab/codereview/`)
 because a CI job cannot resolve plugin paths. Re-run the setup command to pick up plugin updates.
 
 ## Delivery modes (GitLab CI)
 
-`AI_REVIEW_MODE` selects how findings reach the MR; see `references/review-modes.md` for detail.
+`CODEREVIEW_MODE` selects how findings reach the MR; see `references/review-modes.md` for detail.
 
 | Mode | Needs | Result |
 |---|---|---|
 | `inline` (default) | `GITLAB_TOKEN` | One positioned discussion per finding plus a sticky summary note. Positions GitLab rejects degrade to plain notes. On re-push, stale bot threads are resolved and the summary updates in place. |
 | `summary` | `GITLAB_TOKEN` | The sticky summary note only. |
-| `log` | nothing | Job log plus `ai-review-artifacts/`. Automatic fallback when `GITLAB_TOKEN` is unset. |
+| `log` | nothing | Job log plus `codereview-artifacts/`. Automatic fallback when `GITLAB_TOKEN` is unset. |
 
 ## Tokens: when CI_JOB_TOKEN is not enough
 
@@ -75,8 +75,8 @@ no token at all.
 
 The CI job carries `timeout: 15m`, `interruptible: true`, and `allow_failure: true`, so the
 reviewer never blocks a merge and a new push supersedes the in-flight run. The wrapper adds diff
-budgets on every surface (`AI_REVIEW_MAX_FILE_LINES`, `AI_REVIEW_MAX_DIFF_LINES` -- truncations
-are listed in the summary), a turn cap where the engine supports one (`AI_REVIEW_MAX_TURNS`, on
+budgets on every surface (`CODEREVIEW_MAX_FILE_LINES`, `CODEREVIEW_MAX_DIFF_LINES` -- truncations
+are listed in the summary), a turn cap where the engine supports one (`CODEREVIEW_MAX_TURNS`, on
 the `claude` engine), and, in token modes, a no-op guard: a pipeline retry on an already-reviewed
 head SHA exits before the engine runs.
 
@@ -102,4 +102,4 @@ repository can carry both jobs, and neither plugin requires the other.
 - **`examples/mr-review-job.yml`** -- the CI job template
 - **`examples/review-agent.yaml`** -- the docker-agent config template
 - **`examples/copilot-code-review.instructions.md`** -- the Copilot instructions file
-- **`examples/git-hook-pre-push.sh`** -- a pre-push hook wiring `ai-review.sh`
+- **`examples/git-hook-pre-push.sh`** -- a pre-push hook wiring `codereview.sh`

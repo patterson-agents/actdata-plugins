@@ -185,7 +185,7 @@
         "topic": "automated code review of merge requests and pull requests",
         "signals": {
           "filesRead": [
-            "**/.gitlab/ai-review/**",
+            "**/.gitlab/codereview/**",
             "**/.github/instructions/**",
             "**/.gitlab-ci.yml",
             "**/hooks/pre-push*"

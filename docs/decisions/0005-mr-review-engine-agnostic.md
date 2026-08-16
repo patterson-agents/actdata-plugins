@@ -47,7 +47,7 @@ Ship `plugins/code-reviews/` (0.1.0), an engine-agnostic review capability:
 reports, the severity scale, and the findings JSON schema. Every surface derives from it, and the
 Copilot instructions file restates it; a rubric change is a change to all of them.
 
-**2. Deterministic delivery.** `scripts/post-mr-review.ts` (CI) and `scripts/ai-review.sh`
+**2. Deterministic delivery.** `scripts/post-mr-review.ts` (CI) and `scripts/codereview.sh`
 (hooks, ad-hoc) run the engine, validate its output against the contract, and deliver findings.
 Delivery modes: `inline` (positioned discussions plus a sticky, marker-identified summary note;
 the default), `summary`, and `log` — the automatic fallback when no `GITLAB_TOKEN` exists,
@@ -58,7 +58,7 @@ plain notes rather than being dropped.
 scripts strip every GitLab token from the engine's environment; timeouts, `allow_failure: true`,
 `interruptible: true`, diff budgets, and turn caps bound cost. The reviewer never blocks a merge.
 
-**4. Scripts are copied into target repositories** (`.gitlab/ai-review/`) by the
+**4. Scripts are copied into target repositories** (`.gitlab/codereview/`) by the
 `setup-mr-review` command, because CI jobs cannot resolve `${CLAUDE_PLUGIN_ROOT}`. The canonical,
 tested copies stay in the plugin; re-running the command refreshes them.
 
@@ -90,7 +90,7 @@ degrades to `log` mode rather than failing.
 
 **Two engines are tested, two are best-effort.** The fixture suite exercises docker-agent's and
 claude's output envelopes (saved transcripts; no engine is ever spawned in tests); codex and
-copilot CLI flags are young and verified only at setup time, with `AI_REVIEW_ENGINE_CMD` as the
+copilot CLI flags are young and verified only at setup time, with `CODEREVIEW_ENGINE_CMD` as the
 escape hatch. The suite (`scripts/tests/mr-review/`) runs with no network and no engines, so the
 repository gate pins parsing, positioning, the 400 fallback, mode downgrades, marker stickiness,
 token stripping, and re-push resolution — not model quality.
