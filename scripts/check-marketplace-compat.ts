@@ -65,7 +65,8 @@ for (const dir of readdirSync(join(root, "plugins"), { withFileTypes: true })) {
     problems.push(`${dir.name}: missing from one or more marketplaces`);
     continue;
   }
-  if (ce.version !== version || ge.version !== version) problems.push(`${dir.name}: catalog version does not match ${version}`);
+if (ce.version !== version || ge.version !== version) problems.push(`${dir.name}: catalog version does not match ${version}`);
+if (typeof ce.source !== "string" || resolve(root, ce.source) !== pluginRoot) problems.push(`${dir.name}: Claude source must resolve to the plugin directory`);
   if (oe.policy?.installation !== "AVAILABLE") problems.push(`${dir.name}: OpenAI installation policy must be AVAILABLE`);
   if (oe.policy?.authentication !== "ON_INSTALL") problems.push(`${dir.name}: OpenAI authentication policy must be ON_INSTALL`);
   if (typeof oe.category !== "string" || !oe.category) problems.push(`${dir.name}: OpenAI category is required`);
