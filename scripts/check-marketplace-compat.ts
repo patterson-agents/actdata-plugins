@@ -70,13 +70,12 @@ for (const dir of readdirSync(join(root, "plugins"), { withFileTypes: true })) {
   if (oe.policy?.authentication !== "ON_INSTALL") problems.push(`${dir.name}: OpenAI authentication policy must be ON_INSTALL`);
   if (typeof oe.category !== "string" || !oe.category) problems.push(`${dir.name}: OpenAI category is required`);
 
-  const openaiSource = oe.source?.path;
-  if (oe.source?.source !== "local" || typeof openaiSource !== "string" || !existsSync(resolve(root, openaiSource))) {
-    problems.push(`${dir.name}: OpenAI source must resolve to the plugin directory`);
-  }
-  if (typeof ge.source !== "string" || !existsSync(resolve(root, ge.source))) {
-    problems.push(`${dir.name}: Copilot source must resolve to the plugin directory`);
-  }
+const openaiSource = oe.source?.path;
+if (oe.source?.source !== "local" || typeof openaiSource !== "string" || resolve(root, openaiSource) !== pluginRoot) {
+  problems.push(`${dir.name}: OpenAI source must resolve to the plugin directory`);
+}
+if (typeof ge.source !== "string" || resolve(root, ge.source) !== pluginRoot) {
+  problems.push(`${dir.name}: Copilot source must resolve to the plugin directory`);
 }
 
 for (const problem of problems) console.log(`ERROR|marketplace|0|compat|${problem}`);
