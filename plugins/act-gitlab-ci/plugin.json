@@ -1,6 +1,6 @@
 {
-  "name": "act-gitlab-ci", "version": "0.2.0", "description": "Build, review, and troubleshoot GitLab CI/CD integrations.",
+  "name": "act-gitlab-ci", "version": "0.3.0", "description": "Build, review, and troubleshoot GitLab CI/CD integrations, with automated AI merge-request review.",
   "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
   "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
-  "keywords": ["gitlab", "gitlab-ci", "pipelines", "mcp", "oidc", "devops"], "skills": "skills/", "commands": "commands/", "mcpServers": ".mcp.json"
+  "keywords": ["gitlab", "gitlab-ci", "pipelines", "mcp", "oidc", "code-review", "devops"], "skills": "skills/", "commands": "commands/", "mcpServers": ".mcp.json"
 }

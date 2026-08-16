@@ -127,8 +127,8 @@
       "name": "act-gitlab-ci",
       "source": "./plugins/act-gitlab-ci",
       "displayName": "ACT GitLab CI/CD",
-      "description": "GitLab CI/CD and GitLab tooling for Claude Code. Six skills covering running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers; the GitLab MCP server with its full tool catalogue and version requirements; the glab CLI; CI troubleshooting; and pipeline standards translated to GitLab and marked as derived. Ships a GitLab MCP server configuration, a pipeline security review agent, and a zero-dependency pipeline checker. Relevant to anyone writing a .gitlab-ci.yml, wiring Claude into a pipeline, connecting to GitLab over MCP, or reviewing a pipeline for credential and scan compliance.",
-      "version": "0.2.0",
+      "description": "GitLab CI/CD and GitLab tooling for Claude Code. Seven skills covering automated AI review of every merge request through swappable engines (docker-agent, Claude Code, Codex, Copilot) with inline discussions, sticky summaries and a tokenless fallback; running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers; the GitLab MCP server with its full tool catalogue and version requirements; the glab CLI; CI troubleshooting; and pipeline standards translated to GitLab and marked as derived. Ships a GitLab MCP server configuration, a pipeline security review agent, a zero-dependency pipeline checker, an MR review wrapper with a git-hook harness, and GitHub Copilot review instructions. Relevant to anyone writing a .gitlab-ci.yml, reviewing merge requests automatically, wiring Claude into a pipeline, connecting to GitLab over MCP, or reviewing a pipeline for credential and scan compliance.",
+      "version": "0.3.0",
       "author": {
         "name": "Daniel Bodnar"
       },
@@ -144,16 +144,19 @@
         "oidc",
         "bedrock",
         "vertex",
-        "devops"
+        "code-review",
+        "merge-requests",
+        "docker-agent"
       ],
       "relevance": {
-        "topic": "GitLab CI/CD pipelines and GitLab tooling",
+        "topic": "GitLab CI/CD pipelines, merge request review, and GitLab tooling",
         "signals": {
           "filesRead": [
             "**/.gitlab-ci.yml",
             "**/.gitlab/**",
             "**/gitlab-ci/**/*.yml",
-            "**/.gitlab-ci/*.yml"
+            "**/.gitlab-ci/*.yml",
+            "**/.github/instructions/**"
           ]
         }
       }

@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "act-gitlab-ci",
-  "version": "0.2.0",
-  "description": "GitLab CI/CD and GitLab tooling for Claude Code. Covers running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers, the GitLab MCP server, the glab CLI, and pipeline standards adapted for GitLab. Includes a zero-dependency pipeline validator.",
+  "version": "0.3.0",
+  "description": "GitLab CI/CD and GitLab tooling for Claude Code. Covers automated AI review of merge requests through swappable engines (docker-agent, Claude Code, Codex, Copilot), running Claude Code as a CI job across the Claude API, Amazon Bedrock and Vertex providers, the GitLab MCP server, the glab CLI, and pipeline standards adapted for GitLab. Includes a zero-dependency pipeline validator, an MR review wrapper with a git-hook harness, and GitHub Copilot review instructions.",
   "author": {
     "name": "Daniel Bodnar",
     "email": "dbodnar@pattersonvet.com"
@@ -20,6 +20,8 @@
     "oidc",
     "bedrock",
     "vertex",
-    "devops"
+    "code-review",
+    "merge-requests",
+    "docker-agent"
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "name": "act-gitlab-ci", "version": "0.2.0", "description": "GitLab CI/CD, MCP, authentication, troubleshooting, and pipeline review workflows for ACT Data.",
+  "name": "act-gitlab-ci", "version": "0.3.0", "description": "GitLab CI/CD, automated merge-request review, MCP, authentication, troubleshooting, and pipeline review workflows for ACT Data.",
   "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
   "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
-  "keywords": ["gitlab", "gitlab-ci", "pipelines", "mcp", "oidc", "devops"], "skills": "./skills/", "mcpServers": "./.mcp.json",
-  "interface": { "displayName": "ACT GitLab CI/CD", "shortDescription": "Build, review, and troubleshoot GitLab pipelines", "longDescription": "Configure GitLab CI agent jobs, connect GitLab MCP, review pipeline controls, and troubleshoot authentication and execution failures.", "developerName": "ACT Data", "category": "Engineering", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Review this GitLab pipeline against ACT standards.", "Help me connect the GitLab MCP server."] }
+  "keywords": ["gitlab", "gitlab-ci", "pipelines", "mcp", "oidc", "code-review", "devops"], "skills": "./skills/", "mcpServers": "./.mcp.json",
+  "interface": { "displayName": "ACT GitLab CI/CD", "shortDescription": "Build, review, and troubleshoot GitLab pipelines", "longDescription": "Configure GitLab CI agent jobs, set up automated AI review of merge requests, connect GitLab MCP, review pipeline controls, and troubleshoot authentication and execution failures.", "developerName": "ACT Data", "category": "Engineering", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Review this GitLab pipeline against ACT standards.", "Set up automated AI review of merge requests.", "Help me connect the GitLab MCP server."] }
 }

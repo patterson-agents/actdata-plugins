@@ -6,6 +6,6 @@
     { "name": "act-plugin-dev", "description": "Create and review portable agent plugins.", "version": "0.2.0", "source": "./plugins/act-plugin-dev", "category": "Development" },
     { "name": "act-platform-engineering", "description": "Assess and operate PostgreSQL, ZFS, Linux, Proxmox VE, and observability systems.", "version": "0.2.0", "source": "./plugins/act-platform-engineering", "category": "Operations" },
     { "name": "act-work-tracking", "description": "Draft Zoho Projects work and engineering status reports.", "version": "0.2.0", "source": "./plugins/act-work-tracking", "category": "Workflow" },
-    { "name": "act-gitlab-ci", "description": "Build, review, and troubleshoot GitLab CI/CD integrations.", "version": "0.2.0", "source": "./plugins/act-gitlab-ci", "category": "Engineering" }
+    { "name": "act-gitlab-ci", "description": "Build, review, and troubleshoot GitLab CI/CD integrations, with automated AI merge-request review.", "version": "0.3.0", "source": "./plugins/act-gitlab-ci", "category": "Engineering" }
   ]
 }

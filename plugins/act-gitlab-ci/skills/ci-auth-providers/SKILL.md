@@ -59,7 +59,7 @@ instance URL.
 > conditions on project and ref can be assumed from any pipeline in the instance. Restrict it to the
 > specific project and to protected refs.
 
-Bedrock model IDs carry region-specific prefixes, for example `us.anthropic.claude-sonnet-4-6`.
+Bedrock model IDs carry region-specific prefixes, for example `us.anthropic.claude-opus-5`.
 
 ## Google Cloud over Workload Identity Federation
 

@@ -58,7 +58,7 @@ claude-bedrock:
     CLAUDE_CODE_USE_BEDROCK: "1"
 
 # Bedrock model IDs carry region-specific prefixes, for example
-# us.anthropic.claude-sonnet-4-6. Pass the model through your job configuration
+# us.anthropic.claude-opus-5. Pass the model through your job configuration
 # or the prompt if the workflow supports it.
 #
 # Note: the paths above are inside the ephemeral job container, which is

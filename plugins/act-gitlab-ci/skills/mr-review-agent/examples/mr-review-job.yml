@@ -1,0 +1,70 @@
+# Automated AI review of every merge request.
+#
+# Add this job to .gitlab-ci.yml (adapt `stage:` to the project) after copying
+# the review bundle into .gitlab/ai-review/ -- the setup-mr-review command does
+# both. The job runs an AI engine over the MR diff and delivers findings per
+# AI_REVIEW_MODE; see review-modes.md in the mr-review-agent skill.
+#
+# CI/CD variables to create under Settings > CI/CD > Variables (all masked):
+#   - The model provider key the engine needs, e.g. ANTHROPIC_API_KEY.
+#   - GITLAB_TOKEN (optional): a project access token with `api` scope,
+#     Developer role or above. Without it the job cannot post MR comments
+#     (CI_JOB_TOKEN does not carry that permission) and the review lands in
+#     the job log and artifacts instead.
+# Do not expose either variable to pipelines from forks: the reviewed code is
+# untrusted input to the model.
+
+ai-mr-review:
+  stage: test
+  image: oven/bun:1
+  rules:
+    # CI_MERGE_REQUEST_DRAFT needs GitLab 17.10+; the title regex covers
+    # older instances. Draft MRs are also skipped server-side by the wrapper.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_DRAFT == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    # Tokenless (log) mode diffs locally against the MR base, which a shallow
+    # clone cannot reach.
+    GIT_DEPTH: "0"
+    AI_REVIEW_MODE: "inline" # inline | summary | log
+    AI_REVIEW_ENGINE: "docker-agent" # docker-agent | claude | codex | copilot
+    DOCKER_AGENT_VERSION: "v1.124.0" # pin; never latest
+    DOCKER_AGENT_SHA256: "" # optional: recorded checksum of the pinned binary; verified when set
+    TELEMETRY_ENABLED: "false"
+  before_script:
+    # oven/bun images carry no curl; download the pinned standalone binary
+    # with bun itself. No Docker daemon is involved at any point.
+    - |
+      if [ "$AI_REVIEW_ENGINE" = "docker-agent" ]; then
+        bun -e 'const v = process.env.DOCKER_AGENT_VERSION;
+          const url = `https://github.com/docker/docker-agent/releases/download/${v}/docker-agent-linux-amd64`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
+          await Bun.write("/usr/local/bin/docker-agent", res);'
+        if [ -n "$DOCKER_AGENT_SHA256" ]; then
+          bun -e 'const { createHash } = await import("node:crypto");
+            const data = new Uint8Array(await Bun.file("/usr/local/bin/docker-agent").arrayBuffer());
+            const sum = createHash("sha256").update(data).digest("hex");
+            if (sum !== process.env.DOCKER_AGENT_SHA256) throw new Error(`docker-agent sha256 mismatch: ${sum}`);'
+        fi
+        chmod +x /usr/local/bin/docker-agent
+      fi
+    - |
+      if [ "$AI_REVIEW_ENGINE" = "claude" ]; then
+        bun add -g @anthropic-ai/claude-code
+      fi
+  script:
+    - bun .gitlab/ai-review/post-mr-review.ts
+  timeout: 15m
+  # A broken or flaky reviewer must never block a merge.
+  allow_failure: true
+  # A new push supersedes the in-flight review instead of paying for both.
+  interruptible: true
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - ai-review-artifacts/
