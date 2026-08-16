@@ -23,27 +23,20 @@ Agents are autonomous subprocesses that handle complex, multi-step tasks indepen
 ```markdown
 ---
 name: agent-identifier
-description: Use this agent when [triggering conditions]. Examples:
-
-<example>
-Context: [Situation description]
-user: "[User request]"
-assistant: "[How assistant should respond and use this agent]"
-<commentary>
-[Why this agent should be triggered]
-</commentary>
-</example>
-
-<example>
-[Additional example...]
-</example>
-
+description: [What the agent does, in a sentence.] Use [when to delegate to it]. See "When to invoke" in the agent body for worked scenarios.
 model: inherit
 color: blue
 tools: ["Read", "Write", "Grep"]
 ---
 
 You are [agent role description]...
+
+## When to invoke
+
+**[Situation, as a bold lead sentence.]** [Why this agent is the right choice here, or what it
+knows that a general-purpose pass would miss.]
+
+**[Second situation.]** [Same shape. Two or three scenarios total.]
 
 **Your Core Responsibilities:**
 1. [Responsibility 1]
@@ -55,6 +48,16 @@ You are [agent role description]...
 **Output Format:**
 [What to return]
 ```
+
+> [!IMPORTANT]
+> **Keep worked scenarios out of the frontmatter.** Agent descriptions are loaded into context for
+> every session so the orchestrator can match delegation targets; the body is loaded only when the
+> agent actually runs. Three `<example>` blocks per agent, across a dozen agents, is thousands of
+> tokens resident in every session to answer a question a sentence answers.
+>
+> Older agents in this repository and upstream carry `<example>` blocks inside `description`. That
+> shape still works and is not an error, but it is not what new agents should do. Write a one or
+> two sentence description ending in a delegation cue, and put the scenarios in `## When to invoke`.
 
 ## Frontmatter Fields
 
@@ -83,26 +86,20 @@ Agent identifier used for namespacing and invocation.
 Defines when Claude should trigger this agent. **This is the most critical field.**
 
 **Must include:**
-1. Triggering conditions ("Use this agent when...")
-2. Multiple `<example>` blocks showing usage
-3. Context, user request, and assistant response in each example
-4. `<commentary>` explaining why agent triggers
+1. What the agent does, in a sentence
+2. Triggering conditions ("Use this agent when...")
+3. The pointer to the body's worked scenarios
 
 **Format:**
 ```
-Use this agent when [conditions]. Examples:
-
-<example>
-Context: [Scenario description]
-user: "[What user says]"
-assistant: "[How Claude should respond]"
-<commentary>
-[Why this agent is appropriate]
-</commentary>
-</example>
-
-[More examples...]
+[What the agent does.] Use [when to delegate to it]. See "When to invoke" in the agent body
+for worked scenarios.
 ```
+
+Keep it to one or two sentences. This field is resident in context for every session, so length
+here is paid continuously; the worked scenarios belong in the body's `## When to invoke` section,
+which loads only when the agent runs. See `references/triggering-examples.md` for how to write
+those scenarios well.
 
 **Best practices:**
 - Include 2-4 concrete examples
@@ -232,17 +229,25 @@ Requirements:
    - Output format
 4. Create identifier (lowercase, hyphens, 3-50 chars)
 5. Write description with triggering conditions
-6. Include 2-3 <example> blocks showing when to use
+6. Include 2-3 worked scenarios showing when to use
 
 Return JSON with:
 {
   "identifier": "agent-name",
-  "whenToUse": "Use this agent when... Examples: <example>...</example>",
+  "whenToUse": "Use this agent when...",
+  "scenarios": ["Situation and why this agent fits", "..."],
   "systemPrompt": "You are..."
 }
 ```
 
-Then convert to agent file format with frontmatter.
+Then convert to agent file format: `whenToUse` becomes the frontmatter `description` with the
+"See 'When to invoke' in the agent body for worked scenarios." pointer appended, and `scenarios`
+becomes the `## When to invoke` body section.
+
+> [!NOTE]
+> The upstream generator in `references/agent-creation-system-prompt.md` returns `whenToUse` with
+> `<example>` blocks embedded. That file is a verbatim copy of Claude Code's prompt and is left
+> unmodified; the conversion step above is where its output is adapted to the house convention.
 
 See `examples/agent-creation-prompt.md` for complete template.
 
@@ -331,12 +336,16 @@ Ensure system prompt is complete:
 ```markdown
 ---
 name: simple-agent
-description: Use this agent when... Examples: <example>...</example>
+description: [Does X.] Use this agent when... See "When to invoke" in the agent body for worked scenarios.
 model: inherit
 color: blue
 ---
 
 You are an agent that [does X].
+
+## When to invoke
+
+**[Situation.]** [Why this agent fits it.]
 
 Process:
 1. [Step 1]
@@ -350,7 +359,7 @@ Output: [What to provide]
 | Field | Required | Format | Example |
 |-------|----------|--------|---------|
 | name | Yes | lowercase-hyphens | code-reviewer |
-| description | Yes | Text + examples | Use when... <example>... |
+| description | Yes | One or two sentences | Does X. Use when... See "When to invoke"... |
 | model | Yes | inherit/sonnet/opus/haiku | inherit |
 | color | Yes | Color name | blue |
 | tools | No | Array of tool names | ["Read", "Grep"] |
@@ -358,7 +367,7 @@ Output: [What to provide]
 ### Best Practices
 
 **DO:**
-- ✅ Include 2-4 concrete examples in description
+- ✅ Keep the description to one or two sentences, and put 2-3 worked scenarios in `## When to invoke`
 - ✅ Write specific triggering conditions
 - ✅ Use `inherit` for model unless specific need
 - ✅ Choose appropriate tools (least privilege)
@@ -366,7 +375,7 @@ Output: [What to provide]
 - ✅ Test agent triggering thoroughly
 
 **DON'T:**
-- ❌ Use generic descriptions without examples
+- ❌ Use generic descriptions, or bury worked scenarios in the description
 - ❌ Omit triggering conditions
 - ❌ Give all agents same color
 - ❌ Grant unnecessary tool access
