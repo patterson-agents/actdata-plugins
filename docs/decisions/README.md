@@ -15,7 +15,8 @@ what it cost to arrive at, needs one.
 | [0002](0002-config-driven-plugins.md) | Ship no environment identifiers; read them from a site-local settings file | Accepted |
 | [0003](0003-three-plugin-split.md) | Split the operational bundle into three plugins | Accepted |
 | [0004](0004-derived-pipeline-standards.md) | Ship pipeline standards as explicitly derived, and record the platform conflict | Accepted |
-| [0005](0005-mr-review-engine-agnostic.md) | Ship automated code review as an engine-agnostic contract in a standalone code-reviews plugin | Accepted |
+| [0005](0005-mr-review-engine-agnostic.md) | Ship automated code review as an engine-agnostic contract in a standalone code-reviews plugin | Superseded by [0006](0006-review-skills-over-harness.md) |
+| [0006](0006-review-skills-over-harness.md) | Ship review as skills over existing harnesses, and build no runner | Accepted |
 
 ## Format
 

@@ -1,0 +1,53 @@
+# Automated code review on every merge request.
+#
+# Add to .gitlab-ci.yml, adapting `stage:` to the project's existing stages.
+# This uses the GitLab-maintained Claude Code CI/CD integration; the job's
+# Claude Code process posts merge request comments itself through the
+# mcp__gitlab tools, so no posting script is involved.
+#
+# CI/CD variables to create under Settings > CI/CD > Variables, all masked:
+#   ANTHROPIC_API_KEY   the Claude API key
+# For Amazon Bedrock or Google Cloud instead, see gitlab-ci.md.
+#
+# Do not expose these variables to pipelines from forks.
+
+code-review:
+  stage: test
+  image: node:24-alpine3.21
+  rules:
+    # Draft merge requests are not reviewed. CI_MERGE_REQUEST_DRAFT needs
+    # GitLab 17.10+; the title check covers older instances.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_DRAFT == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
+      when: never
+    # For a first run, comment out the line below and keep only the web rule,
+    # so a person confirms credentials and permissions before this is automatic.
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    GIT_DEPTH: "0"
+  before_script:
+    - apk add --no-cache git curl bash
+    - curl -fsSL https://claude.ai/install.sh | bash
+    # The installer places claude in ~/.local/bin, which is not on PATH here.
+    - export PATH="$HOME/.local/bin:$PATH"
+  script:
+    # Supplies the mcp__gitlab tools inside the job. This runner binary is not
+    # the HTTP MCP server at /api/v4/mcp -- see gitlab-ci.md.
+    - /bin/gitlab-mcp-server || true
+    - >
+      claude
+      -p "Review this merge request following the guidance in REVIEW.md and ACT_CODE_REVIEW.md,
+      including any file they reference with @. Report only findings that name a concrete failure
+      scenario and cite path:line. Post them on the merge request, one comment per unique issue,
+      with a summary note. Modify no files."
+      --allowedTools "Read Grep Glob mcp__gitlab"
+      --max-turns 25
+  # Bounds a task that turns out harder than expected. Neither has a useful
+  # default for an unattended job.
+  timeout: 20m
+  # A probabilistic reviewer must never block a merge.
+  allow_failure: true
+  # A new push supersedes an in-flight review.
+  interruptible: true

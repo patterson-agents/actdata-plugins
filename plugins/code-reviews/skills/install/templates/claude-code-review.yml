@@ -1,0 +1,54 @@
+# Automated code review on every pull request.
+#
+# Copy to .github/workflows/claude-code-review.yml.
+#
+# Create one repository or organization secret before this runs:
+#   ANTHROPIC_API_KEY          a Claude API key
+# or, for a subscription token, CLAUDE_CODE_OAUTH_TOKEN, swapping the input
+# below to claude_code_oauth_token.
+#
+# On public repositories GitHub withholds secrets from fork pull requests, so
+# this runs only on branches in the same repository. That is intended: the
+# reviewed diff is untrusted input to a model holding the job's environment.
+
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+# A new push supersedes an in-flight review rather than paying for both.
+concurrency:
+  group: code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # read is sufficient: the inline-comment MCP server writes through the
+      # action's own app token, not through gh.
+      pull-requests: read
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          plugin_marketplaces: "https://github.com/patterson-agents/actdata-plugins.git"
+          plugins: "code-reviews@actdata-plugins"
+          # --comment is what makes findings post. Without it the review runs
+          # and writes to the workflow log only.
+          prompt: "/code-reviews:review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
+          # Required even though the skill's own frontmatter allows the tool:
+          # the action starts the inline-comment MCP server only when
+          # --allowedTools names it here.
+          claude_args: >-
+            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+            --max-turns 25

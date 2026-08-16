@@ -1,6 +1,6 @@
 {
-  "name": "code-reviews", "version": "0.1.0", "description": "Run automated AI code review on merge requests, pull requests, git hooks, and in-session.",
+  "name": "code-reviews", "version": "0.2.0", "description": "Perform high-quality code review on any host, and install it into GitHub, GitLab, or local harnesses.",
   "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
   "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
-  "keywords": ["code-review", "merge-requests", "pull-requests", "gitlab", "github", "automation"], "skills": "skills/", "commands": "commands/"
+  "keywords": ["code-review", "pull-requests", "merge-requests", "github", "gitlab", "automation"], "skills": "skills/"
 }

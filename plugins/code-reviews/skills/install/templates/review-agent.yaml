@@ -1,0 +1,57 @@
+# docker-agent configuration for code review.
+#
+# Run headless:
+#   docker-agent run --exec review-agent.yaml --safety restricted
+#
+# The binary is standalone -- no Docker daemon is involved despite the name.
+# Pin a release rather than tracking latest; headless flags and event shapes
+# move between versions.
+#
+# SECURITY: the diff under review is untrusted input to an unattended model.
+# The toolset below is read-only on purpose. Widening it is a security
+# decision, not a convenience: the approval flag governs prompting, the
+# toolset governs capability.
+
+agents:
+  root:
+    # REQUIRED: replace with the model for the chosen provider, and set that
+    # provider's API key in the environment. Examples:
+    #
+    #   model: anthropic/claude-opus-5     # ANTHROPIC_API_KEY; recommended
+    #   model: anthropic/claude-sonnet-5   # ANTHROPIC_API_KEY; lower cost
+    #   model: openai/gpt-5.6-sol          # OPENAI_API_KEY
+    #
+    # Local models work the same way with a dmr/ model string and no key.
+    # Provider list: https://docker.github.io/docker-agent/providers/overview/
+    model: REPLACE_ME
+
+    instruction: |
+      Review the changes on the current branch as a senior engineer.
+
+      Read the review guidance in this repository before starting: REVIEW.md
+      first, then ACT_CODE_REVIEW.md and any file it references with an @
+      prefix. Follow that guidance exactly; it overrides these instructions
+      where the two differ.
+
+      Review only the changed lines and the minimum surrounding context needed
+      to judge them. Report a finding only when it names a concrete failure
+      scenario -- specific inputs or state producing a wrong result, a crash,
+      or a security consequence -- and cites path:line in code you have read.
+      Do not report style, formatting, pre-existing issues, or anything a
+      linter catches.
+
+      Print the findings, most severe first, each with the defect, the failure
+      scenario, and a concrete suggestion. Say so plainly when there is nothing
+      to report. Modify no files.
+
+    toolsets:
+      - type: filesystem
+        tools: ["read_file", "search_files_content"]
+      - type: script
+        shell:
+          changed_files:
+            description: The diff against the default branch
+            cmd: git diff origin/HEAD...HEAD
+          recent_history:
+            description: The last 30 commits
+            cmd: git log --oneline -n 30
