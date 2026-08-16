@@ -146,7 +146,8 @@
         "vertex",
         "code-review",
         "merge-requests",
-        "docker-agent"
+        "docker-agent",
+        "devops"
       ],
       "relevance": {
         "topic": "GitLab CI/CD pipelines, merge request review, and GitLab tooling",

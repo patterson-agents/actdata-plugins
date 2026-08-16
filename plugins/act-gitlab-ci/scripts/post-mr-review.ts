@@ -537,19 +537,39 @@ function readJsonFile(path: string): unknown {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function runEngine(spec: EngineSpec, prompt: string, env: Record<string, string | undefined>): string {
-  // The engine must not see any GitLab token: it processes untrusted MR
-  // content, and posting is this script's job. CI_JOB_TOKEN goes too -- no
-  // engine needs it. The rest of the job environment (provider key included)
-  // necessarily remains reachable.
+/**
+ * The environment an engine subprocess may see. No GitLab token of any kind:
+ * the engine processes untrusted MR content, and posting is this script's
+ * job. The rest of the job environment (provider key included) necessarily
+ * remains reachable.
+ */
+export function engineChildEnv(env: Record<string, string | undefined>): Record<string, string> {
   const STRIPPED = ["GITLAB_TOKEN", "GITLAB_ACCESS_TOKEN", "CI_JOB_TOKEN"];
   const childEnv: Record<string, string> = {};
   for (const [k, v] of Object.entries(env)) {
     if (v !== undefined && !STRIPPED.includes(k)) childEnv[k] = v;
   }
   childEnv.TELEMETRY_ENABLED = childEnv.TELEMETRY_ENABLED || "false";
+  return childEnv;
+}
+
+// Linux caps a single argv element at 128 KiB (MAX_ARG_STRLEN). Prompts ride
+// argv only for engines with no stdin mode; refuse before the kernel does.
+const MAX_ARG_PROMPT_BYTES = 120_000;
+
+function runEngine(spec: EngineSpec, prompt: string, env: Record<string, string | undefined>): string {
+  const childEnv = engineChildEnv(env);
   const argv = [...spec.argv];
-  if (spec.promptVia === "arg") argv.push(prompt);
+  if (spec.promptVia === "arg") {
+    if (Buffer.byteLength(prompt, "utf8") > MAX_ARG_PROMPT_BYTES) {
+      fail(
+        `the prompt (${Buffer.byteLength(prompt, "utf8")} bytes) exceeds the OS argument limit for this ` +
+          `engine; lower AI_REVIEW_MAX_DIFF_LINES or use AI_REVIEW_ENGINE_CMD with a stdin-reading command`,
+        2,
+      );
+    }
+    argv.push(prompt);
+  }
   const result = spawnSync(argv[0], argv.slice(1), {
     input: spec.promptVia === "stdin" ? prompt : undefined,
     env: childEnv,
@@ -573,13 +593,25 @@ function localDiff(baseSha: string): FileDiff[] {
   if (result.status !== 0) {
     fail(`git diff against ${baseSha} failed (shallow clone? set GIT_DEPTH: "0"): ${result.stderr}`, 2);
   }
-  // Split the unified diff back into per-file chunks so truncation budgets
-  // apply per file, same as the API path.
+  return parseGitDiff(result.stdout || "");
+}
+
+/**
+ * Split a raw `git diff` back into per-file chunks so truncation budgets
+ * apply per file, same as the API path. The body starts at the first hunk:
+ * truncateDiff() adds its own header lines, so keeping git's index/---/+++
+ * metadata would duplicate them in the prompt. Paths that git quotes
+ * (spaces, non-ASCII) do not match and are skipped -- a documented
+ * limitation of tokenless mode.
+ */
+export function parseGitDiff(raw: string): FileDiff[] {
   const files: FileDiff[] = [];
-  for (const chunk of (result.stdout || "").split(/^diff --git /m).slice(1)) {
+  for (const chunk of raw.split(/^diff --git /m).slice(1)) {
     const m = chunk.match(/^a\/(\S+) b\/(\S+)/);
     if (!m) continue;
-    const body = chunk.split("\n").slice(1).join("\n");
+    const lines = chunk.split("\n").slice(1);
+    const hunkStart = lines.findIndex((l) => l.startsWith("@@"));
+    const body = (hunkStart === -1 ? lines : lines.slice(hunkStart)).join("\n");
     files.push({ old_path: m[1], new_path: m[2], diff: body });
   }
   return files;
@@ -696,7 +728,14 @@ async function main(): Promise<void> {
     rawOutput = readFileSync(env.AI_REVIEW_FIXTURE_OUTPUT, "utf8");
   } else {
     const engine = env.AI_REVIEW_ENGINE || "docker-agent";
-    rawOutput = runEngine(engineSpec(engine, env), prompt, env);
+    let spec: EngineSpec;
+    try {
+      spec = engineSpec(engine, env);
+    } catch (err) {
+      // A typo'd engine is a configuration error, same as a typo'd mode.
+      fail(err instanceof Error ? err.message : String(err), 2);
+    }
+    rawOutput = runEngine(spec, prompt, env);
   }
   writeFileSync(join(artifactsDir, "transcript.ndjson"), rawOutput);
 

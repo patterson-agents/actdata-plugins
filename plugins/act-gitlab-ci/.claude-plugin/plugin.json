@@ -22,6 +22,7 @@
     "vertex",
     "code-review",
     "merge-requests",
-    "docker-agent"
+    "docker-agent",
+    "devops"
   ]
 }

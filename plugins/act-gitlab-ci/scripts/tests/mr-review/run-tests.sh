@@ -58,7 +58,7 @@ fi
 # --- --extract contract --------------------------------------------------------
 
 out=$(bun "$WRAPPER" --extract "$FIXTURES/transcript.ndjson" 2>&1)
-if [ $? -eq 0 ] && printf '%s' "$out" | grep -q '"findings"'; then
+if [ $? -eq 0 ] && printf '%s' "$out" | grep -q 'Charge amount accepted without currency validation'; then
   pass "--extract parses a docker-agent transcript"
 else
   fail "--extract parses a docker-agent transcript" "$out"
@@ -83,10 +83,11 @@ else
   fail "--blocking exits 0 with no blocker"
 fi
 
-if bun "$WRAPPER" --extract "$FIXTURES/transcript-malformed.ndjson" >/dev/null 2>&1; then
-  fail "malformed transcript exits non-zero"
+out=$(bun "$WRAPPER" --extract "$FIXTURES/transcript-malformed.ndjson" 2>&1)
+if [ $? -ne 0 ] && printf '%s' "$out" | grep -q 'no valid findings-contract object'; then
+  pass "malformed transcript exits non-zero with the contract error"
 else
-  pass "malformed transcript exits non-zero"
+  fail "malformed transcript exits non-zero with the contract error" "$out"
 fi
 
 # --- dry-run: inline mode over fixtures ----------------------------------------
@@ -150,6 +151,33 @@ else
   fail "dry-run writes findings.json and review.md artifacts"
 fi
 
+# --- dry-run: draft MRs are skipped server-side ---------------------------------
+
+out=$(AI_REVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token AI_REVIEW_MODE=inline \
+  CI_API_V4_URL="https://gitlab.example.com/api/v4" CI_PROJECT_ID="123" CI_MERGE_REQUEST_IID="8" \
+  CI_MERGE_REQUEST_SOURCE_BRANCH_SHA="$HEAD_SHA" \
+  AI_REVIEW_FIXTURE_CHANGES="$FIXTURES/mr-changes-draft.json" \
+  AI_REVIEW_FIXTURE_OUTPUT="$FIXTURES/transcript.ndjson" \
+  AI_REVIEW_ARTIFACTS="$WORK/artifacts-draft" \
+  bun "$WRAPPER" 2>&1)
+if [ $? -eq 0 ] && printf '%s' "$out" | grep -q 'draft merge request' &&
+  ! printf '%s' "$out" | grep -q '"planned"'; then
+  pass "draft MR skips the review and plans no actions"
+else
+  fail "draft MR skips the review and plans no actions" "$out"
+fi
+
+# --- configuration typos exit 2, not 1 ------------------------------------------
+
+AI_REVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token AI_REVIEW_MODE=inlien \
+  CI_MERGE_REQUEST_IID="7" bun "$WRAPPER" >/dev/null 2>&1
+status=$?
+if [ "$status" -eq 2 ]; then
+  pass "unknown AI_REVIEW_MODE exits 2"
+else
+  fail "unknown AI_REVIEW_MODE exits 2" "exit $status"
+fi
+
 # --- dry-run: pipeline retry is a no-op ----------------------------------------
 
 out=$(run_dry "abc123abc123" inline fake-token)
@@ -168,6 +196,22 @@ if [ $? -eq 0 ] &&
   pass "missing token downgrades inline to log with a notice"
 else
   fail "missing token downgrades inline to log with a notice" "$out $(cat "$WORK/dry-stderr.txt")"
+fi
+
+# --- harness: engines never see GitLab tokens ------------------------------------
+
+printf 'diff --git a/src/app.ts b/src/app.ts\n--- a/src/app.ts\n+++ b/src/app.ts\n@@ -1 +1 @@\n+probe\n' >"$WORK/probe.diff"
+
+out=$(TMPDIR="$WORK" \
+  GITLAB_TOKEN=super-secret GITLAB_ACCESS_TOKEN=also-secret CI_JOB_TOKEN=job-secret \
+  PROBE_CONTROL=present \
+  AI_REVIEW_DIFF_FILE="$WORK/probe.diff" \
+  AI_REVIEW_ENGINE_CMD="sh $FIXTURES/stub-env-probe.sh" \
+  sh "$HARNESS" 2>&1)
+if printf '%s' "$out" | grep -q 'env probe: clean control-ok'; then
+  pass "harness strips GitLab tokens but not the rest of the env"
+else
+  fail "harness strips GitLab tokens but not the rest of the env" "$out"
 fi
 
 # --- harness: stub engine -------------------------------------------------------

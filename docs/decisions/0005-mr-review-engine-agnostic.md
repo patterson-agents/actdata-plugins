@@ -78,9 +78,10 @@ would move the rubric and its restatements together.
 `mr-review-agent` skill states when each applies. Without a project access token the capability
 degrades to `log` mode rather than failing.
 
-**Two engines are tested, two are best-effort.** docker-agent and claude invocations are exercised
-by the fixture suite; codex and copilot CLI flags are young and verified only at setup time, with
-`AI_REVIEW_ENGINE_CMD` as the escape hatch. The suite (`scripts/tests/mr-review/`) runs with no
+**Two engines are tested, two are best-effort.** The fixture suite exercises docker-agent's and
+claude's output envelopes (saved transcripts; no engine is ever spawned in tests); codex and
+copilot CLI flags are young and verified only at setup time, with `AI_REVIEW_ENGINE_CMD` as the
+escape hatch. The suite (`scripts/tests/mr-review/`) runs with no
 network and no engines, so the repository gate pins parsing, positioning, the 400 fallback, mode
 downgrades, marker stickiness, and re-push resolution — not model quality.
 

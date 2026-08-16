@@ -90,6 +90,10 @@ PROMPT_FILE="$WORKDIR/prompt.md"
 OUT_FILE="$WORKDIR/engine-output.txt"
 MAX_TURNS="${AI_REVIEW_MAX_TURNS:-25}"
 
+# Set by run_engine on OUR configuration errors, so an engine that happens to
+# exit 2 is not mistaken for one.
+CONFIG_ERR=0
+
 run_engine() {
   if [ -n "${AI_REVIEW_ENGINE_CMD:-}" ]; then
     GITLAB_TOKEN= GITLAB_ACCESS_TOKEN= CI_JOB_TOKEN= sh -c "$AI_REVIEW_ENGINE_CMD" <"$PROMPT_FILE" >"$OUT_FILE" 2>"$WORKDIR/engine-stderr.txt"
@@ -104,6 +108,7 @@ run_engine() {
   fi
   if [ -z "$engine" ]; then
     err "no engine found (docker-agent, claude, codex or copilot); set AI_REVIEW_ENGINE_CMD"
+    CONFIG_ERR=1
     return 2
   fi
 
@@ -129,12 +134,19 @@ run_engine() {
       ;;
     copilot)
       # Best effort: verify flags against `copilot --help` for the installed
-      # version; override with AI_REVIEW_ENGINE_CMD on drift.
+      # version; override with AI_REVIEW_ENGINE_CMD on drift. The prompt rides
+      # argv (no stdin mode), which the OS caps at 128 KiB per element.
+      if [ "$(wc -c <"$PROMPT_FILE")" -gt 120000 ]; then
+        err "prompt too large for the copilot engine's argument passing; lower the diff size or use AI_REVIEW_ENGINE_CMD with a stdin-reading command"
+        CONFIG_ERR=1
+        return 2
+      fi
       GITLAB_TOKEN= GITLAB_ACCESS_TOKEN= CI_JOB_TOKEN= \
-        copilot -p "$(cat "$PROMPT_FILE")" >"$OUT_FILE" 2>"$WORKDIR/engine-stderr.txt"
+        copilot -p "$(cat "$PROMPT_FILE")" </dev/null >"$OUT_FILE" 2>"$WORKDIR/engine-stderr.txt"
       ;;
     *)
       err "unknown AI_REVIEW_ENGINE \"$engine\""
+      CONFIG_ERR=1
       return 2
       ;;
   esac
@@ -142,7 +154,7 @@ run_engine() {
 
 run_engine
 engine_status=$?
-if [ "$engine_status" -eq 2 ]; then
+if [ "$CONFIG_ERR" -eq 1 ]; then
   exit 2
 fi
 if [ ! -s "$OUT_FILE" ]; then
