@@ -50,7 +50,15 @@ for (const [host, entries] of [["OpenAI", openaiEntries], ["Copilot", copilotEnt
   }
 }
 
-for (const dir of readdirSync(join(root, "plugins"), { withFileTypes: true })) {
+let pluginDirs: import("node:fs").Dirent[];
+try {
+  pluginDirs = readdirSync(join(root, "plugins"), { withFileTypes: true });
+} catch {
+  console.error(`ERROR: ${root}: could not evaluate (plugins/ directory missing or unreadable)`);
+  process.exit(2);
+}
+
+for (const dir of pluginDirs) {
   if (!dir.isDirectory()) continue;
   const pluginRoot = join(root, "plugins", dir.name);
   const claudeManifestPath = join(pluginRoot, ".claude-plugin", "plugin.json");
@@ -82,19 +90,19 @@ for (const dir of readdirSync(join(root, "plugins"), { withFileTypes: true })) {
     problems.push(`${dir.name}: missing from one or more marketplaces`);
     continue;
   }
-if (ce.version !== version || ge.version !== version) problems.push(`${dir.name}: catalog version does not match ${version}`);
-if (typeof ce.source !== "string" || resolve(root, ce.source) !== pluginRoot) problems.push(`${dir.name}: Claude source must resolve to the plugin directory`);
+  if (ce.version !== version || ge.version !== version) problems.push(`${dir.name}: catalog version does not match ${version}`);
+  if (typeof ce.source !== "string" || resolve(root, ce.source) !== pluginRoot) problems.push(`${dir.name}: Claude source must resolve to the plugin directory`);
   if (oe.policy?.installation !== "AVAILABLE") problems.push(`${dir.name}: OpenAI installation policy must be AVAILABLE`);
   if (oe.policy?.authentication !== "ON_INSTALL") problems.push(`${dir.name}: OpenAI authentication policy must be ON_INSTALL`);
   if (typeof oe.category !== "string" || !oe.category) problems.push(`${dir.name}: OpenAI category is required`);
 
-const openaiSource = oe.source?.path;
-if (oe.source?.source !== "local" || typeof openaiSource !== "string" || resolve(root, openaiSource) !== pluginRoot) {
-  problems.push(`${dir.name}: OpenAI source must resolve to the plugin directory`);
-}
-if (typeof ge.source !== "string" || resolve(root, ge.source) !== pluginRoot) {
-  problems.push(`${dir.name}: Copilot source must resolve to the plugin directory`);
-}
+  const openaiSource = oe.source?.path;
+  if (oe.source?.source !== "local" || typeof openaiSource !== "string" || resolve(root, openaiSource) !== pluginRoot) {
+    problems.push(`${dir.name}: OpenAI source must resolve to the plugin directory`);
+  }
+  if (typeof ge.source !== "string" || resolve(root, ge.source) !== pluginRoot) {
+    problems.push(`${dir.name}: Copilot source must resolve to the plugin directory`);
+  }
 }
 
 for (const problem of problems) console.log(`ERROR|marketplace|0|compat|${problem}`);
