@@ -1,6 +1,24 @@
 # Agent Triggering Examples: Best Practices
 
-Complete guide to writing effective `<example>` blocks in agent descriptions for reliable triggering.
+Complete guide to writing worked scenarios that make an agent trigger reliably.
+
+> [!IMPORTANT]
+> **These scenarios belong in the agent body, not the frontmatter description.** Put them under a
+> `## When to invoke` heading in the body and keep `description` to one or two sentences ending in a
+> delegation cue. A description is loaded into context for every session so the orchestrator can
+> match delegation targets; a body loads only when the agent runs.
+>
+> The `<example>` markup below is the historical shape, still used by the upstream generator and by
+> older agents here. What it teaches about *choosing and phrasing* scenarios applies unchanged — read
+> it for the judgment, and write the result as prose in `## When to invoke`:
+>
+> ```markdown
+> ## When to invoke
+>
+> **A pipeline change is up for review.** Someone asks for a look before merging. This is the
+> primary use, and the method is the point: run the checker first, then read for what a regex
+> scanner cannot see.
+> ```
 
 ## Example Block Format
 

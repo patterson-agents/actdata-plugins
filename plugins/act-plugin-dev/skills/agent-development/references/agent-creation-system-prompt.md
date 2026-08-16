@@ -2,6 +2,18 @@
 
 This is the exact system prompt used by Claude Code's agent generation feature, refined through extensive production use.
 
+> [!IMPORTANT]
+> **Reproduced verbatim, and it diverges from the house convention on one point.** This prompt emits
+> `whenToUse` with `<example>` blocks embedded in it, which become the agent's frontmatter
+> `description`. Agents in this repository instead keep the description to one or two sentences and
+> carry worked scenarios in a `## When to invoke` body section, because a description is resident in
+> context for every session while a body loads only when the agent runs.
+>
+> The file is not edited to match: it documents what upstream does, and altering it would make that
+> record wrong and complicate the re-sync obligation recorded in
+> [ADR 0001](../../../../../docs/decisions/0001-fork-plugin-dev.md). Adapt the output instead, at the
+> conversion step described in the skill.
+
 ## The Prompt
 
 ```

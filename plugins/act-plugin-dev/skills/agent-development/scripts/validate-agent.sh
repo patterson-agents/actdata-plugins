@@ -105,15 +105,22 @@ else
     ((warning_count++))
   fi
 
-  # Check for example blocks
-  if ! echo "$DESCRIPTION" | grep -q '<example>'; then
-    echo "⚠️  description should include <example> blocks for triggering"
+  # Worked scenarios belong in the body, not the description: a description is
+  # resident in context every session, a body loads only when the agent runs.
+  if echo "$DESCRIPTION" | grep -q '<example>'; then
+    echo "⚠️  description contains <example> blocks; move them to a '## When to invoke' body section"
     ((warning_count++))
   fi
 
-  # Check for "Use this agent when" pattern
-  if ! echo "$DESCRIPTION" | grep -qi 'use this agent when'; then
-    echo "⚠️  description should start with 'Use this agent when...'"
+  # Check for a delegation cue
+  if ! echo "$DESCRIPTION" | grep -qiE '\buse (this agent |it )?(when|for|before|after|during|to |on )'; then
+    echo "⚠️  description should say when to delegate (for example 'Use when...')"
+    ((warning_count++))
+  fi
+
+  # Check the body carries the worked scenarios
+  if ! grep -q '^## When to invoke' "$AGENT_FILE"; then
+    echo "⚠️  body should include a '## When to invoke' section with 2-3 worked scenarios"
     ((warning_count++))
   fi
 fi
