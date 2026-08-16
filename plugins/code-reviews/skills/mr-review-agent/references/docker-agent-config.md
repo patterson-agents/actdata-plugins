@@ -72,7 +72,7 @@ environment (provider key included) is within reach of a prompt-injected agent w
 
 | Flag | Behavior | Use |
 |---|---|---|
-| `--safety restricted` | Denies tool calls outside configured permissions without prompting | The default (`AI_REVIEW_ENGINE_FLAGS`) |
+| `--safety restricted` | Denies tool calls outside configured permissions without prompting | The default (`CODEREVIEW_ENGINE_FLAGS`) |
 | `--yolo` | Auto-approves everything | Fallback if a version denies the read-only tools under `restricted`; acceptable only because the toolset is already read-only |
 | `--sandbox` | Runs the agent in a VM | Not usable inside typical CI containers (no nested virtualization) |
 

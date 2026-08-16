@@ -2,7 +2,7 @@
 
 ## Mode matrix
 
-`AI_REVIEW_MODE` on the CI job selects delivery. The wrapper resolves the effective mode at
+`CODEREVIEW_MODE` on the CI job selects delivery. The wrapper resolves the effective mode at
 runtime: any comment mode without `GITLAB_TOKEN` downgrades to `log` with a notice on stderr,
 because `CI_JOB_TOKEN` cannot create MR notes or discussions.
 
@@ -12,7 +12,7 @@ because `CI_JOB_TOKEN` cannot create MR notes or discussions.
 | `summary` | `GITLAB_TOKEN` | The summary note only: counts, a findings table with `path:line` locations, truncation notices. |
 | `log` | none | The rendered report in the job log, plus artifacts. |
 
-Artifacts are written in every mode, under `ai-review-artifacts/`:
+Artifacts are written in every mode, under `codereview-artifacts/`:
 
 | File | Content |
 |---|---|
@@ -27,24 +27,24 @@ Artifacts are written in every mode, under `ai-review-artifacts/`:
 | `inline`, `summary` | `GET /projects/:id/merge_requests/:iid/changes` | Also supplies `diff_refs` for positioning and the server-side draft flag |
 | `log` | `git diff $CI_MERGE_REQUEST_DIFF_BASE_SHA...HEAD` | The base SHA must be reachable: set `GIT_DEPTH: "0"` on the job (the template does) or fetch it explicitly |
 
-Diff budgets apply in both paths: `AI_REVIEW_MAX_FILE_LINES` (default 1500) per file and
-`AI_REVIEW_MAX_DIFF_LINES` (default 6000) total. Files cut by either budget are named in the
+Diff budgets apply in both paths: `CODEREVIEW_MAX_FILE_LINES` (default 1500) per file and
+`CODEREVIEW_MAX_DIFF_LINES` (default 6000) total. Files cut by either budget are named in the
 summary so a partial review never masquerades as a full one.
 
 ## Engine matrix
 
-| `AI_REVIEW_ENGINE` | Invocation | Auth | Notes |
+| `CODEREVIEW_ENGINE` | Invocation | Auth | Notes |
 |---|---|---|---|
 | `docker-agent` | `docker-agent run --exec review-agent.yaml --json --safety restricted -` | Provider key per `model:` in the config | Default. Provider-agnostic. Standalone binary, pinned by `DOCKER_AGENT_VERSION`; no Docker daemon. |
 | `claude` | `claude -p --output-format json --max-turns N --allowedTools "Read Grep Glob"` | `ANTHROPIC_API_KEY`, subscription token, or the Bedrock/Vertex setups documented by the act-gitlab-ci plugin | The Docker-free pipeline path. |
 | `codex` | `codex exec --json` | OpenAI credentials | Best effort: flags move between versions; check `codex exec --help`. |
-| `copilot` | `copilot -p <prompt>` | GitHub Copilot auth | Best effort: same caveat. The prompt travels as one argv element, so very large diffs can exceed the OS argument limit -- lower `AI_REVIEW_MAX_DIFF_LINES` or switch to `AI_REVIEW_ENGINE_CMD` with a stdin-reading invocation. |
-| any | `AI_REVIEW_ENGINE_CMD` | caller's concern | Full command via `sh -c` on both surfaces (CI wrapper and local harness); prompt on stdin; must print the findings JSON. |
+| `copilot` | `copilot -p <prompt>` | GitHub Copilot auth | Best effort: same caveat. The prompt travels as one argv element, so very large diffs can exceed the OS argument limit -- lower `CODEREVIEW_MAX_DIFF_LINES` or switch to `CODEREVIEW_ENGINE_CMD` with a stdin-reading invocation. |
+| any | `CODEREVIEW_ENGINE_CMD` | caller's concern | Full command via `sh -c` on both surfaces (CI wrapper and local harness); prompt on stdin; must print the findings JSON. |
 
-The local harness auto-detects an engine when `AI_REVIEW_ENGINE` is unset: the first of
+The local harness auto-detects an engine when `CODEREVIEW_ENGINE` is unset: the first of
 `docker-agent`, `claude`, `codex`, `copilot` found on PATH.
 
-Safety flags for docker-agent default to `--safety restricted` (`AI_REVIEW_ENGINE_FLAGS`
+Safety flags for docker-agent default to `--safety restricted` (`CODEREVIEW_ENGINE_FLAGS`
 overrides). If a docker-agent version denies the read-only tools under `restricted`, `--yolo` is
 an acceptable fallback **only because** the config's toolsets are already read-only: the approval
 flag governs prompting, the toolset governs capability.

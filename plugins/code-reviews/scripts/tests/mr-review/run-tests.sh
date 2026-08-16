@@ -1,6 +1,6 @@
 #!/bin/sh
 # =============================================================================
-# Tests for post-mr-review.ts and ai-review.sh.
+# Tests for post-mr-review.ts and codereview.sh.
 #
 # Fixture-driven throughout: no network, no GitLab, no real engines. The
 # wrapper's pure functions are covered by unit.test.ts under `bun test`; this
@@ -14,7 +14,7 @@ set -u
 SUITE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PLUGIN_DIR=$(CDPATH= cd -- "$SUITE_DIR/../../.." && pwd)
 WRAPPER="$PLUGIN_DIR/scripts/post-mr-review.ts"
-HARNESS="$PLUGIN_DIR/scripts/ai-review.sh"
+HARNESS="$PLUGIN_DIR/scripts/codereview.sh"
 FIXTURES="$SUITE_DIR/fixtures"
 
 passed=0
@@ -23,7 +23,7 @@ failed=0
 pass() { passed=$((passed + 1)); printf '  ok   %s\n' "$1"; }
 fail() { failed=$((failed + 1)); printf '  FAIL %s\n' "$1"; [ $# -gt 1 ] && printf '       %s\n' "$2"; }
 
-echo "post-mr-review.ts / ai-review.sh"
+echo "post-mr-review.ts / codereview.sh"
 
 for f in "$WRAPPER" "$HARNESS"; do
   if [ ! -f "$f" ]; then
@@ -94,18 +94,18 @@ fi
 
 run_dry() {
   # $1 head sha, $2 mode, $3 token ("" for none), remaining env via caller
-  AI_REVIEW_DRY_RUN=1 \
+  CODEREVIEW_DRY_RUN=1 \
   GITLAB_TOKEN="$3" \
-  AI_REVIEW_MODE="$2" \
+  CODEREVIEW_MODE="$2" \
   CI_API_V4_URL="https://gitlab.example.com/api/v4" \
   CI_PROJECT_ID="123" \
   CI_MERGE_REQUEST_IID="7" \
   CI_MERGE_REQUEST_SOURCE_BRANCH_SHA="$1" \
-  AI_REVIEW_FIXTURE_CHANGES="$FIXTURES/mr-changes.json" \
-  AI_REVIEW_FIXTURE_NOTES="$FIXTURES/notes-with-marker.json" \
-  AI_REVIEW_FIXTURE_DISCUSSIONS="$FIXTURES/discussions-stale.json" \
-  AI_REVIEW_FIXTURE_OUTPUT="$FIXTURES/transcript.ndjson" \
-  AI_REVIEW_ARTIFACTS="$WORK/artifacts" \
+  CODEREVIEW_FIXTURE_CHANGES="$FIXTURES/mr-changes.json" \
+  CODEREVIEW_FIXTURE_NOTES="$FIXTURES/notes-with-marker.json" \
+  CODEREVIEW_FIXTURE_DISCUSSIONS="$FIXTURES/discussions-stale.json" \
+  CODEREVIEW_FIXTURE_OUTPUT="$FIXTURES/transcript.ndjson" \
+  CODEREVIEW_ARTIFACTS="$WORK/artifacts" \
   bun "$WRAPPER" 2>"$WORK/dry-stderr.txt"
 }
 
@@ -153,12 +153,12 @@ fi
 
 # --- dry-run: draft MRs are skipped server-side ---------------------------------
 
-out=$(AI_REVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token AI_REVIEW_MODE=inline \
+out=$(CODEREVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token CODEREVIEW_MODE=inline \
   CI_API_V4_URL="https://gitlab.example.com/api/v4" CI_PROJECT_ID="123" CI_MERGE_REQUEST_IID="8" \
   CI_MERGE_REQUEST_SOURCE_BRANCH_SHA="$HEAD_SHA" \
-  AI_REVIEW_FIXTURE_CHANGES="$FIXTURES/mr-changes-draft.json" \
-  AI_REVIEW_FIXTURE_OUTPUT="$FIXTURES/transcript.ndjson" \
-  AI_REVIEW_ARTIFACTS="$WORK/artifacts-draft" \
+  CODEREVIEW_FIXTURE_CHANGES="$FIXTURES/mr-changes-draft.json" \
+  CODEREVIEW_FIXTURE_OUTPUT="$FIXTURES/transcript.ndjson" \
+  CODEREVIEW_ARTIFACTS="$WORK/artifacts-draft" \
   bun "$WRAPPER" 2>&1)
 if [ $? -eq 0 ] && printf '%s' "$out" | grep -q 'draft merge request' &&
   ! printf '%s' "$out" | grep -q '"planned"'; then
@@ -169,13 +169,13 @@ fi
 
 # --- configuration typos exit 2, not 1 ------------------------------------------
 
-AI_REVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token AI_REVIEW_MODE=inlien \
+CODEREVIEW_DRY_RUN=1 GITLAB_TOKEN=fake-token CODEREVIEW_MODE=inlien \
   CI_MERGE_REQUEST_IID="7" bun "$WRAPPER" >/dev/null 2>&1
 status=$?
 if [ "$status" -eq 2 ]; then
-  pass "unknown AI_REVIEW_MODE exits 2"
+  pass "unknown CODEREVIEW_MODE exits 2"
 else
-  fail "unknown AI_REVIEW_MODE exits 2" "exit $status"
+  fail "unknown CODEREVIEW_MODE exits 2" "exit $status"
 fi
 
 # --- dry-run: pipeline retry is a no-op ----------------------------------------
@@ -205,8 +205,8 @@ printf 'diff --git a/src/app.ts b/src/app.ts\n--- a/src/app.ts\n+++ b/src/app.ts
 out=$(TMPDIR="$WORK" \
   GITLAB_TOKEN=super-secret GITLAB_ACCESS_TOKEN=also-secret CI_JOB_TOKEN=job-secret \
   PROBE_CONTROL=present \
-  AI_REVIEW_DIFF_FILE="$WORK/probe.diff" \
-  AI_REVIEW_ENGINE_CMD="sh $FIXTURES/stub-env-probe.sh" \
+  CODEREVIEW_DIFF_FILE="$WORK/probe.diff" \
+  CODEREVIEW_ENGINE_CMD="sh $FIXTURES/stub-env-probe.sh" \
   sh "$HARNESS" 2>&1)
 if printf '%s' "$out" | grep -q 'env probe: clean control-ok'; then
   pass "harness strips GitLab tokens but not the rest of the env"
@@ -219,8 +219,8 @@ fi
 printf 'diff --git a/src/app.ts b/src/app.ts\n--- a/src/app.ts\n+++ b/src/app.ts\n@@ -1 +1 @@\n+changed\n' >"$WORK/stub.diff"
 
 out=$(TMPDIR="$WORK" \
-  AI_REVIEW_DIFF_FILE="$WORK/stub.diff" \
-  AI_REVIEW_ENGINE_CMD="sh $FIXTURES/stub-engine.sh" \
+  CODEREVIEW_DIFF_FILE="$WORK/stub.diff" \
+  CODEREVIEW_ENGINE_CMD="sh $FIXTURES/stub-engine.sh" \
   sh "$HARNESS" 2>&1)
 if [ $? -eq 0 ] && printf '%s' "$out" | grep -q 'Stub blocker finding'; then
   pass "harness reports stub engine findings"
@@ -229,9 +229,9 @@ else
 fi
 
 if TMPDIR="$WORK" \
-  AI_REVIEW_DIFF_FILE="$WORK/stub.diff" \
-  AI_REVIEW_ENGINE_CMD="sh $FIXTURES/stub-engine.sh" \
-  AI_REVIEW_BLOCKING=1 \
+  CODEREVIEW_DIFF_FILE="$WORK/stub.diff" \
+  CODEREVIEW_ENGINE_CMD="sh $FIXTURES/stub-engine.sh" \
+  CODEREVIEW_BLOCKING=1 \
   sh "$HARNESS" >/dev/null 2>&1; then
   fail "harness blocking mode exits 1 on a blocker"
 else
@@ -239,7 +239,7 @@ else
 fi
 
 : >"$WORK/empty.diff"
-out=$(TMPDIR="$WORK" AI_REVIEW_DIFF_FILE="$WORK/empty.diff" sh "$HARNESS" 2>&1)
+out=$(TMPDIR="$WORK" CODEREVIEW_DIFF_FILE="$WORK/empty.diff" sh "$HARNESS" 2>&1)
 if [ $? -eq 0 ] && printf '%s' "$out" | grep -q 'empty diff'; then
   pass "harness exits 0 on an empty diff"
 else

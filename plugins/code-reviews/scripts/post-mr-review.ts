@@ -11,15 +11,15 @@
  * prompt, spawns the engine, validates the output against the findings
  * contract (see review-rubric.md), and posts the review.
  *
- * Modes (AI_REVIEW_MODE, default "inline"):
+ * Modes (CODEREVIEW_MODE, default "inline"):
  *   inline   one positioned discussion per finding + a sticky summary note;
  *            findings whose position GitLab rejects degrade to plain notes
  *   summary  a single sticky summary note
  *   log      job log + artifacts only; the automatic fallback when no
  *            GITLAB_TOKEN is set, because CI_JOB_TOKEN cannot create MR notes
  *
- * Engines (AI_REVIEW_ENGINE, default "docker-agent"):
- *   docker-agent | claude | codex | copilot | custom via AI_REVIEW_ENGINE_CMD
+ * Engines (CODEREVIEW_ENGINE, default "docker-agent"):
+ *   docker-agent | claude | codex | copilot | custom via CODEREVIEW_ENGINE_CMD
  *
  * The engine subprocess never receives GITLAB_TOKEN: merge-request code is
  * untrusted input to the model, and a prompt-injected engine must have nothing
@@ -187,7 +187,7 @@ export function resolveMode(requested: string | undefined, hasToken: boolean): {
   const wanted = (requested || "inline").toLowerCase();
   if (wanted !== "inline" && wanted !== "summary" && wanted !== "log") {
     // A typo must not silently escalate to the most-privileged posting mode.
-    throw new Error(`unknown AI_REVIEW_MODE "${requested}" (inline|summary|log)`);
+    throw new Error(`unknown CODEREVIEW_MODE "${requested}" (inline|summary|log)`);
   }
   const mode = wanted as Mode;
   if (mode !== "log" && !hasToken) return { mode: "log", downgraded: true };
@@ -203,18 +203,18 @@ export interface EngineSpec {
  * The engine allowlist. docker-agent and claude are the tested pair; codex
  * and copilot are best-effort (their headless flags move fast -- verify with
  * `codex exec --help` / `copilot --help` and override with
- * AI_REVIEW_ENGINE_CMD when they drift).
+ * CODEREVIEW_ENGINE_CMD when they drift).
  */
 export function engineSpec(engine: string, env: Record<string, string | undefined>): EngineSpec {
-  const custom = env.AI_REVIEW_ENGINE_CMD;
+  const custom = env.CODEREVIEW_ENGINE_CMD;
   if (custom && custom.trim().length > 0) {
-    // Through a shell, same as ai-review.sh, so pipes and quoting behave
+    // Through a shell, same as codereview.sh, so pipes and quoting behave
     // identically on both surfaces.
     return { argv: ["sh", "-c", custom.trim()], promptVia: "stdin" };
   }
-  const maxTurns = env.AI_REVIEW_MAX_TURNS || "25";
-  const config = env.AI_REVIEW_AGENT_CONFIG || ".gitlab/ai-review/review-agent.yaml";
-  const safety = env.AI_REVIEW_ENGINE_FLAGS || "--safety restricted";
+  const maxTurns = env.CODEREVIEW_MAX_TURNS || "25";
+  const config = env.CODEREVIEW_AGENT_CONFIG || ".gitlab/codereview/review-agent.yaml";
+  const safety = env.CODEREVIEW_ENGINE_FLAGS || "--safety restricted";
   switch (engine) {
     case "claude":
       return {
@@ -231,7 +231,7 @@ export function engineSpec(engine: string, env: Record<string, string | undefine
         promptVia: "stdin",
       };
     default:
-      throw new Error(`unknown AI_REVIEW_ENGINE "${engine}" (docker-agent|claude|codex|copilot)`);
+      throw new Error(`unknown CODEREVIEW_ENGINE "${engine}" (docker-agent|claude|codex|copilot)`);
   }
 }
 
@@ -564,7 +564,7 @@ function runEngine(spec: EngineSpec, prompt: string, env: Record<string, string 
     if (Buffer.byteLength(prompt, "utf8") > MAX_ARG_PROMPT_BYTES) {
       fail(
         `the prompt (${Buffer.byteLength(prompt, "utf8")} bytes) exceeds the OS argument limit for this ` +
-          `engine; lower AI_REVIEW_MAX_DIFF_LINES or use AI_REVIEW_ENGINE_CMD with a stdin-reading command`,
+          `engine; lower CODEREVIEW_MAX_DIFF_LINES or use CODEREVIEW_ENGINE_CMD with a stdin-reading command`,
         2,
       );
     }
@@ -619,19 +619,19 @@ export function parseGitDiff(raw: string): FileDiff[] {
 
 async function main(): Promise<void> {
   const env = process.env;
-  const dryRun = env.AI_REVIEW_DRY_RUN === "1";
-  const artifactsDir = env.AI_REVIEW_ARTIFACTS || "ai-review-artifacts";
+  const dryRun = env.CODEREVIEW_DRY_RUN === "1";
+  const artifactsDir = env.CODEREVIEW_ARTIFACTS || "codereview-artifacts";
   const hasToken = Boolean(env.GITLAB_TOKEN);
   let resolved: { mode: Mode; downgraded: boolean };
   try {
-    resolved = resolveMode(env.AI_REVIEW_MODE, hasToken);
+    resolved = resolveMode(env.CODEREVIEW_MODE, hasToken);
   } catch (err) {
     fail(err instanceof Error ? err.message : String(err), 2);
   }
   const { mode, downgraded } = resolved;
   if (downgraded) {
     console.error(
-      `post-mr-review: AI_REVIEW_MODE=${env.AI_REVIEW_MODE || "inline"} requires GITLAB_TOKEN ` +
+      `post-mr-review: CODEREVIEW_MODE=${env.CODEREVIEW_MODE || "inline"} requires GITLAB_TOKEN ` +
         `(CI_JOB_TOKEN cannot create MR notes); falling back to log mode.`,
     );
   }
@@ -656,8 +656,8 @@ async function main(): Promise<void> {
   let existingDiscussions: ExistingDiscussion[] = [];
 
   if (mode !== "log") {
-    const mrRaw = dryRun && env.AI_REVIEW_FIXTURE_CHANGES
-      ? readJsonFile(env.AI_REVIEW_FIXTURE_CHANGES)
+    const mrRaw = dryRun && env.CODEREVIEW_FIXTURE_CHANGES
+      ? readJsonFile(env.CODEREVIEW_FIXTURE_CHANGES)
       : (await http("GET", "/changes")).body;
     const mr = (mrRaw || {}) as {
       title?: string;
@@ -676,13 +676,13 @@ async function main(): Promise<void> {
     diffRefs = mr.diff_refs || null;
     files = mr.changes || [];
 
-    const notesRaw = dryRun && env.AI_REVIEW_FIXTURE_NOTES
-      ? readJsonFile(env.AI_REVIEW_FIXTURE_NOTES)
+    const notesRaw = dryRun && env.CODEREVIEW_FIXTURE_NOTES
+      ? readJsonFile(env.CODEREVIEW_FIXTURE_NOTES)
       : (await http("GET", "/notes?per_page=100")).body;
     existingNotes = ((notesRaw as { id: number; body: string }[]) || []).map((n) => ({ id: n.id, body: n.body }));
 
-    const discussionsRaw = dryRun && env.AI_REVIEW_FIXTURE_DISCUSSIONS
-      ? readJsonFile(env.AI_REVIEW_FIXTURE_DISCUSSIONS)
+    const discussionsRaw = dryRun && env.CODEREVIEW_FIXTURE_DISCUSSIONS
+      ? readJsonFile(env.CODEREVIEW_FIXTURE_DISCUSSIONS)
       : (await http("GET", "/discussions?per_page=100")).body;
     existingDiscussions = ((discussionsRaw as { id: string; notes?: { body: string; resolved?: boolean }[] }[]) || [])
       .filter((d) => (d.notes || []).length > 0)
@@ -704,30 +704,30 @@ async function main(): Promise<void> {
     if (baseSha) files = localDiff(baseSha);
   }
 
-  const maxFileLines = Number(env.AI_REVIEW_MAX_FILE_LINES || 1500);
-  const maxTotalLines = Number(env.AI_REVIEW_MAX_DIFF_LINES || 6000);
+  const maxFileLines = Number(env.CODEREVIEW_MAX_FILE_LINES || 1500);
+  const maxTotalLines = Number(env.CODEREVIEW_MAX_DIFF_LINES || 6000);
   const { text: diffText, truncated } = truncateDiff(files, maxFileLines, maxTotalLines);
-  if (diffText.trim().length === 0 && !env.AI_REVIEW_FIXTURE_OUTPUT) {
+  if (diffText.trim().length === 0 && !env.CODEREVIEW_FIXTURE_OUTPUT) {
     console.log("post-mr-review: empty diff, nothing to review.");
     return;
   }
 
-  const rubricPath = env.AI_REVIEW_RUBRIC || ".gitlab/ai-review/review-rubric.md";
+  const rubricPath = env.CODEREVIEW_RUBRIC || ".gitlab/codereview/review-rubric.md";
   let rubric = "";
   try {
     rubric = readFileSync(rubricPath, "utf8");
   } catch {
     // A saved engine output makes the prompt (and so the rubric) unused.
-    if (!env.AI_REVIEW_FIXTURE_OUTPUT) fail(`rubric not found at ${rubricPath}`, 2);
+    if (!env.CODEREVIEW_FIXTURE_OUTPUT) fail(`rubric not found at ${rubricPath}`, 2);
   }
   const prompt = buildPrompt(rubric, { title: mrTitle, description: mrDescription }, diffText, truncated);
 
   mkdirSync(artifactsDir, { recursive: true });
   let rawOutput: string;
-  if (env.AI_REVIEW_FIXTURE_OUTPUT) {
-    rawOutput = readFileSync(env.AI_REVIEW_FIXTURE_OUTPUT, "utf8");
+  if (env.CODEREVIEW_FIXTURE_OUTPUT) {
+    rawOutput = readFileSync(env.CODEREVIEW_FIXTURE_OUTPUT, "utf8");
   } else {
-    const engine = env.AI_REVIEW_ENGINE || "docker-agent";
+    const engine = env.CODEREVIEW_ENGINE || "docker-agent";
     let spec: EngineSpec;
     try {
       spec = engineSpec(engine, env);
@@ -768,7 +768,7 @@ async function main(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// --extract: parse a saved engine output file (used by ai-review.sh)
+// --extract: parse a saved engine output file (used by codereview.sh)
 // ---------------------------------------------------------------------------
 
 function extractCli(args: string[]): void {

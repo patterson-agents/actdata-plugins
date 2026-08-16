@@ -1,8 +1,8 @@
 # docker-agent configuration for automated merge-request review.
 #
-# Copied into a target repository (conventionally .gitlab/ai-review/) by the
+# Copied into a target repository (conventionally .gitlab/codereview/) by the
 # setup-mr-review command. The full review rubric and the diff arrive in the
-# prompt built by post-mr-review.ts / ai-review.sh; this file sets the model,
+# prompt built by post-mr-review.ts / codereview.sh; this file sets the model,
 # the persona, and -- deliberately -- a read-only toolset.
 #
 # SECURITY: the diff under review is untrusted input to the model. This agent
