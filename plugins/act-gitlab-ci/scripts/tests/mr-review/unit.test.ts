@@ -11,10 +11,14 @@ import {
   type Action,
   type DiffRefs,
   type Finding,
+  buildPrompt,
+  engineChildEnv,
+  engineSpec,
   executeActions,
   extractReview,
   markerKindOf,
   markerShaOf,
+  parseGitDiff,
   planActions,
   positionFor,
   renderSummary,
@@ -102,6 +106,94 @@ describe("resolveMode", () => {
   });
   test("rejects unknown modes instead of escalating to inline", () => {
     expect(() => resolveMode("summry", true)).toThrow("unknown AI_REVIEW_MODE");
+  });
+});
+
+describe("engineSpec", () => {
+  test("each named engine produces its documented argv shape", () => {
+    expect(engineSpec("docker-agent", {}).argv).toEqual([
+      "docker-agent", "run", "--exec", ".gitlab/ai-review/review-agent.yaml", "--json", "--safety", "restricted", "-",
+    ]);
+    expect(engineSpec("claude", {}).argv).toEqual([
+      "claude", "-p", "--output-format", "json", "--max-turns", "25", "--allowedTools", "Read Grep Glob",
+    ]);
+    expect(engineSpec("codex", {}).argv).toEqual(["codex", "exec", "--json"]);
+    expect(engineSpec("copilot", {})).toEqual({ argv: ["copilot", "-p"], promptVia: "arg" });
+  });
+
+  test("AI_REVIEW_ENGINE_CMD runs through a shell, matching ai-review.sh", () => {
+    const spec = engineSpec("docker-agent", { AI_REVIEW_ENGINE_CMD: "my-engine --flag 'quoted arg'" });
+    expect(spec.argv).toEqual(["sh", "-c", "my-engine --flag 'quoted arg'"]);
+    expect(spec.promptVia).toBe("stdin");
+  });
+
+  test("a whitespace-only override falls back to the named engine", () => {
+    expect(engineSpec("codex", { AI_REVIEW_ENGINE_CMD: "   " }).argv[0]).toBe("codex");
+  });
+
+  test("an unknown engine throws instead of guessing", () => {
+    expect(() => engineSpec("gpt", {})).toThrow("unknown AI_REVIEW_ENGINE");
+  });
+});
+
+describe("engineChildEnv", () => {
+  test("strips every GitLab token and keeps the rest", () => {
+    const child = engineChildEnv({
+      GITLAB_TOKEN: "secret",
+      GITLAB_ACCESS_TOKEN: "secret2",
+      CI_JOB_TOKEN: "secret3",
+      ANTHROPIC_API_KEY: "provider-key",
+      CI_PROJECT_ID: "123",
+    });
+    expect(child.GITLAB_TOKEN).toBeUndefined();
+    expect(child.GITLAB_ACCESS_TOKEN).toBeUndefined();
+    expect(child.CI_JOB_TOKEN).toBeUndefined();
+    // Positive controls: stripping must not mean "empty env".
+    expect(child.ANTHROPIC_API_KEY).toBe("provider-key");
+    expect(child.CI_PROJECT_ID).toBe("123");
+  });
+
+  test("telemetry defaults off and an explicit value wins", () => {
+    expect(engineChildEnv({}).TELEMETRY_ENABLED).toBe("false");
+    expect(engineChildEnv({ TELEMETRY_ENABLED: "true" }).TELEMETRY_ENABLED).toBe("true");
+  });
+});
+
+describe("parseGitDiff", () => {
+  const raw = [
+    "diff --git a/src/app.ts b/src/app.ts",
+    "index 1111111..2222222 100644",
+    "--- a/src/app.ts",
+    "+++ b/src/app.ts",
+    "@@ -1,2 +1,2 @@",
+    "-old",
+    "+new",
+    'diff --git "a/with space.ts" "b/with space.ts"',
+    "@@ -1 +1 @@",
+    "+x",
+  ].join("\n");
+
+  test("bodies start at the first hunk so truncateDiff headers are not duplicated", () => {
+    const files = parseGitDiff(raw);
+    expect(files).toHaveLength(1);
+    expect(files[0].new_path).toBe("src/app.ts");
+    expect(files[0].diff.startsWith("@@")).toBe(true);
+    expect(files[0].diff).not.toContain("+++ b/");
+  });
+
+  test("quoted paths are skipped, not mangled", () => {
+    expect(parseGitDiff(raw).some((f) => f.new_path.includes("space"))).toBe(false);
+  });
+});
+
+describe("buildPrompt", () => {
+  test("names truncated files so a partial review cannot pose as a full one", () => {
+    const prompt = buildPrompt("RUBRIC", { title: "t", description: "d" }, "+x", ["big.ts"]);
+    expect(prompt).toContain("truncated or omitted for size");
+    expect(prompt).toContain("big.ts");
+  });
+  test("carries no truncation note when nothing was cut", () => {
+    expect(buildPrompt("RUBRIC", { title: "t", description: "d" }, "+x", [])).not.toContain("truncated or omitted");
   });
 });
 

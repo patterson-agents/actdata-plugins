@@ -54,7 +54,8 @@ ai-mr-review:
       fi
     - |
       if [ "$AI_REVIEW_ENGINE" = "claude" ]; then
-        bun add -g @anthropic-ai/claude-code
+        # Pin CLAUDE_CODE_VERSION to a known-good release for reproducible runs.
+        bun add -g "@anthropic-ai/claude-code${CLAUDE_CODE_VERSION:+@$CLAUDE_CODE_VERSION}"
       fi
   script:
     - bun .gitlab/ai-review/post-mr-review.ts
