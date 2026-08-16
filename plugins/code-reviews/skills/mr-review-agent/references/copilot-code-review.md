@@ -27,7 +27,7 @@ Frontmatter options:
 
 ## Installation
 
-`/act-gitlab-ci:setup-mr-review copilot` copies the template to
+`/code-reviews:setup-mr-review copilot` copies the template to
 `.github/instructions/code-review.instructions.md` in the target repository. Two conditions are
 outside the file's control and worth stating to the user:
 

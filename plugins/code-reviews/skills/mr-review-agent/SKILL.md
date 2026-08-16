@@ -24,7 +24,7 @@ Engines are swappable via `AI_REVIEW_ENGINE`:
 | Engine | Runs | Status |
 |---|---|---|
 | `docker-agent` (default) | Pinned standalone binary; provider-agnostic `model:` in `review-agent.yaml`. No Docker daemon involved. | Tested pair |
-| `claude` | `claude -p` headless with read-only tools | Tested pair |
+| `claude` | `claude -p` headless with read-only tools; Bedrock/Vertex auth is covered by the act-gitlab-ci plugin | Tested pair |
 | `codex` | `codex exec` | Best effort; verify flags per version |
 | `copilot` | Copilot CLI | Best effort; verify flags per version |
 
@@ -35,10 +35,10 @@ prints the findings JSON.
 
 | Surface | Entry point | Setup |
 |---|---|---|
-| GitLab CI on every MR | `examples/mr-review-job.yml` running `post-mr-review.ts` | `/act-gitlab-ci:setup-mr-review gitlab-ci` |
-| Git hooks / scripts | `scripts/ai-review.sh`, `examples/git-hook-pre-push.sh` | `/act-gitlab-ci:setup-mr-review git-hook` |
+| GitLab CI on every MR | `examples/mr-review-job.yml` running `post-mr-review.ts` | `/code-reviews:setup-mr-review gitlab-ci` |
+| Git hooks / scripts | `scripts/ai-review.sh`, `examples/git-hook-pre-push.sh` | `/code-reviews:setup-mr-review git-hook` |
 | In-session, any host | the `review-mr` command | installed with the plugin |
-| GitHub Copilot native review | `examples/copilot-code-review.instructions.md` | `/act-gitlab-ci:setup-mr-review copilot` |
+| GitHub Copilot native review | `examples/copilot-code-review.instructions.md` | `/code-reviews:setup-mr-review copilot` |
 
 The CI scripts are **copied into the target repository** (conventionally `.gitlab/ai-review/`)
 because a CI job cannot resolve plugin paths. Re-run the setup command to pick up plugin updates.
@@ -59,10 +59,11 @@ because a CI job cannot resolve plugin paths. Re-run the setup command to pick u
 `inline` and `summary` modes do. Those modes need `GITLAB_TOKEN`: a project access token with
 `api` scope and Developer role, stored masked.
 
-This is the documented exception to the `claude-code-ci-jobs` guidance to prefer `CI_JOB_TOKEN`.
-That guidance stands wherever the job token's permissions suffice (cloning, package registries,
-trigger tokens); posting review comments is a case where they do not. Without a project access
-token, run `log` mode -- it needs no token at all.
+This is the documented exception to the act-gitlab-ci plugin's guidance (in its
+`claude-code-ci-jobs` skill) to prefer `CI_JOB_TOKEN`. That guidance stands wherever the job
+token's permissions suffice (cloning, package registries, trigger tokens); posting review
+comments is a case where they do not. Without a project access token, run `log` mode -- it needs
+no token at all.
 
 > [!CAUTION]
 > The diff under review is untrusted input to the model. Keep engine toolsets read-only (the
@@ -79,11 +80,12 @@ are listed in the summary), a turn cap where the engine supports one (`AI_REVIEW
 the `claude` engine), and, in token modes, a no-op guard: a pipeline retry on an already-reviewed
 head SHA exits before the engine runs.
 
-## Boundary with claude-code-ci-jobs
+## Boundary with the act-gitlab-ci plugin
 
-The `claude-code-ci-jobs` skill runs Claude Code in CI as an **actor**: it edits files, commits,
-and opens MRs from instructions. This skill runs an engine as a **reviewer**: read-only, structured
-findings, deterministic posting. Neither replaces the other; a repository can carry both jobs.
+The act-gitlab-ci plugin's `claude-code-ci-jobs` skill runs Claude Code in CI as an **actor**: it
+edits files, commits, and opens MRs from instructions. This skill runs an engine as a
+**reviewer**: read-only, structured findings, deterministic posting. Neither replaces the other; a
+repository can carry both jobs, and neither plugin requires the other.
 
 ## Additional resources
 

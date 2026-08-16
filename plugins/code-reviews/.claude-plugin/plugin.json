@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "code-reviews",
+  "version": "0.1.0",
+  "description": "Automated AI code review across GitHub, GitLab, and local agents. One review rubric and findings contract drive four surfaces: a GitLab CI job that reviews every merge request through swappable engines (docker-agent, Claude Code, Codex, Copilot) with inline discussions and a sticky summary, a git pre-push hook, an in-session review command, and GitHub Copilot native review instructions. Delivery is deterministic script code, never an agent tool call, with a tokenless log-mode fallback.",
+  "author": {
+    "name": "Daniel Bodnar",
+    "email": "dbodnar@pattersonvet.com"
+  },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins",
+  "repository": "https://github.com/patterson-agents/actdata-plugins",
+  "license": "LicenseRef-ACT-Internal",
+  "keywords": [
+    "code-review",
+    "merge-requests",
+    "pull-requests",
+    "gitlab",
+    "github",
+    "docker-agent",
+    "git-hooks",
+    "copilot",
+    "ci-cd",
+    "automation"
+  ]
+}

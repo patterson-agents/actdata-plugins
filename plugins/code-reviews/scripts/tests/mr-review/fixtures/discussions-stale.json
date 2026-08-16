@@ -3,7 +3,7 @@
     "id": "d1f2e3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0",
     "notes": [
       {
-        "body": "**[Warning]** Stale finding from the previous revision\n\nDetail.\n\n<!-- act-gitlab-ci:mr-review sha=abc123abc123 kind=finding -->",
+        "body": "**[Warning]** Stale finding from the previous revision\n\nDetail.\n\n<!-- code-reviews:mr-review sha=abc123abc123 kind=finding -->",
         "resolved": false
       }
     ]

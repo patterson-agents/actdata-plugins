@@ -36,7 +36,7 @@ summary so a partial review never masquerades as a full one.
 | `AI_REVIEW_ENGINE` | Invocation | Auth | Notes |
 |---|---|---|---|
 | `docker-agent` | `docker-agent run --exec review-agent.yaml --json --safety restricted -` | Provider key per `model:` in the config | Default. Provider-agnostic. Standalone binary, pinned by `DOCKER_AGENT_VERSION`; no Docker daemon. |
-| `claude` | `claude -p --output-format json --max-turns N --allowedTools "Read Grep Glob"` | `ANTHROPIC_API_KEY`, subscription token, or the Bedrock/Vertex setups in `ci-auth-providers` | The Docker-free pipeline path. |
+| `claude` | `claude -p --output-format json --max-turns N --allowedTools "Read Grep Glob"` | `ANTHROPIC_API_KEY`, subscription token, or the Bedrock/Vertex setups documented by the act-gitlab-ci plugin | The Docker-free pipeline path. |
 | `codex` | `codex exec --json` | OpenAI credentials | Best effort: flags move between versions; check `codex exec --help`. |
 | `copilot` | `copilot -p <prompt>` | GitHub Copilot auth | Best effort: same caveat. The prompt travels as one argv element, so very large diffs can exceed the OS argument limit -- lower `AI_REVIEW_MAX_DIFF_LINES` or switch to `AI_REVIEW_ENGINE_CMD` with a stdin-reading invocation. |
 | any | `AI_REVIEW_ENGINE_CMD` | caller's concern | Full command via `sh -c` on both surfaces (CI wrapper and local harness); prompt on stdin; must print the findings JSON. |
@@ -57,7 +57,7 @@ decorative.
 
 ## Sticky and re-push semantics
 
-Every body the wrapper posts embeds `<!-- act-gitlab-ci:mr-review sha=<head_sha> kind=<kind> -->`
+Every body the wrapper posts embeds `<!-- code-reviews:mr-review sha=<head_sha> kind=<kind> -->`
 (`kind=summary` on the sticky note, `kind=finding` on discussions and fallback notes).
 
 - **Summary note**: found by marker and updated in place (`PUT`); created once, then stable, so

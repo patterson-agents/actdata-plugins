@@ -53,7 +53,7 @@ behavior in tests (`scripts/tests/mr-review/`).
 
 ## Marker-based stickiness
 
-Every posted body ends with `<!-- act-gitlab-ci:mr-review sha=<head_sha> kind=<kind> -->`,
+Every posted body ends with `<!-- code-reviews:mr-review sha=<head_sha> kind=<kind> -->`,
 invisible in rendered markdown. `kind` is `summary` on the sticky note and `finding` on
 discussions and fallback notes -- the distinction is load-bearing, because GitLab lists notes
 newest-first and a fallback note would otherwise be mistaken for the summary and overwritten.

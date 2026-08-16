@@ -1,6 +1,6 @@
 {
-  "name": "act-gitlab-ci", "version": "0.2.1", "description": "Build, review, and troubleshoot GitLab CI/CD integrations.",
+  "name": "code-reviews", "version": "0.1.0", "description": "Run automated AI code review on merge requests, pull requests, git hooks, and in-session.",
   "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
   "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
-  "keywords": ["gitlab", "gitlab-ci", "pipelines", "mcp", "oidc", "devops"], "skills": "skills/", "commands": "commands/", "mcpServers": ".mcp.json"
+  "keywords": ["code-review", "merge-requests", "pull-requests", "gitlab", "github", "automation"], "skills": "skills/", "commands": "commands/"
 }

@@ -1,0 +1,14 @@
+[
+  {
+    "id": 60,
+    "body": "**[Warning]** `src/payments/refund.ts:17` -- Fallback finding from the previous revision\n\nPosted as a plain note because GitLab rejected its diff position.\n\n<!-- code-reviews:mr-review sha=abc123abc123 kind=finding -->"
+  },
+  {
+    "id": 55,
+    "body": "Looks reasonable overall, one question about the ledger call inline."
+  },
+  {
+    "id": 101,
+    "body": "## Automated code review\n\nPrevious review of an earlier revision.\n\nReviewed commit abc123abc123.\n\n<!-- code-reviews:mr-review sha=abc123abc123 kind=summary -->"
+  }
+]
