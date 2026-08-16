@@ -138,8 +138,9 @@ docs/decisions/                   # ADRs
 
 1. This file.
 2. [`README.md`](../README.md) — what the marketplace is and the plugin catalog.
-3. [`CONTRIBUTING.md`](../CONTRIBUTING.md) — the conventions table. It is short and load-bearing.
-4. `plugins/act-work-tracking/` end to end. It is small enough to hold in your head and has one of
+6. [`docs/decisions/`](decisions/README.md) — the ADR index. Start with
+   [`0001-fork-plugin-dev.md`](decisions/0001-fork-plugin-dev.md) and the reason `act-plugin-dev` is
+   a fork rather than a dependency.
    everything: skills with references and examples, an agent, commands, a script, a test suite.
 5. `plugins/act-plugin-dev/README.md` — then its skills as you need them.
 6. [`docs/decisions/0001-fork-plugin-dev.md`](decisions/0001-fork-plugin-dev.md) — the one ADR, and
