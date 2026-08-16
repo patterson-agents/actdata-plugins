@@ -1,0 +1,48 @@
+#!/bin/sh
+# pre-push -- review the commits about to be pushed.
+#
+# Install: copy to .git/hooks/pre-push and mark it executable, or point a hook
+# manager (lefthook, husky, core.hooksPath) at it. Note that .git/hooks is
+# per-clone and unversioned, so each contributor installs it themselves.
+#
+# Runs whichever agent CLI is already on PATH and skips silently when none is.
+# There is nothing to configure: install a different CLI, or put one earlier on
+# PATH, to change which engine reviews.
+#
+# Advisory: findings print and the push proceeds. `git push --no-verify` skips
+# this hook entirely.
+
+ZERO=0000000000000000000000000000000000000000
+
+PROMPT='Review the changes in the given range against the review guidance in this repository.
+Read, in order: REVIEW.md, then ACT_CODE_REVIEW.md and any file it references with @.
+Report only findings that name a concrete failure scenario and cite path:line.
+Print the findings; do not modify any file.'
+
+if command -v claude >/dev/null 2>&1; then
+  review() { claude -p "$PROMPT Range: $1" --allowedTools "Read Grep Glob" --max-turns 15; }
+elif command -v codex >/dev/null 2>&1; then
+  review() { codex exec "$PROMPT Range: $1"; }
+elif command -v copilot >/dev/null 2>&1; then
+  review() { copilot -p "$PROMPT Range: $1"; }
+else
+  echo "pre-push: no agent CLI on PATH; skipping review." >&2
+  exit 0
+fi
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  # Deleting a ref pushes nothing reviewable.
+  [ "$local_sha" = "$ZERO" ] && continue
+
+  if [ "$remote_sha" = "$ZERO" ]; then
+    # New branch: compare against the default branch when it is known.
+    base=$(git merge-base origin/HEAD "$local_sha" 2>/dev/null) || base=""
+  else
+    base="$remote_sha"
+  fi
+  [ -n "$base" ] || continue
+
+  review "$base...$local_sha"
+done
+
+exit 0

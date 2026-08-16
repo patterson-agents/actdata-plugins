@@ -7,6 +7,6 @@
     { "name": "act-platform-engineering", "description": "Assess and operate PostgreSQL, ZFS, Linux, Proxmox VE, and observability systems.", "version": "0.2.0", "source": "./plugins/act-platform-engineering", "category": "Operations" },
     { "name": "act-work-tracking", "description": "Draft Zoho Projects work and engineering status reports.", "version": "0.2.0", "source": "./plugins/act-work-tracking", "category": "Workflow" },
     { "name": "act-gitlab-ci", "description": "Build, review, and troubleshoot GitLab CI/CD integrations.", "version": "0.2.1", "source": "./plugins/act-gitlab-ci", "category": "Engineering" },
-    { "name": "code-reviews", "description": "Run automated AI code review on merge requests, pull requests, git hooks, and in-session.", "version": "0.1.0", "source": "./plugins/code-reviews", "category": "Engineering" }
+    { "name": "code-reviews", "description": "Perform high-quality code review on any host, and install it into GitHub, GitLab, or local harnesses.", "version": "0.2.0", "source": "./plugins/code-reviews", "category": "Engineering" }
   ]
 }

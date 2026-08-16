@@ -1,6 +1,6 @@
 # 5. Ship automated code review as an engine-agnostic contract in a standalone code-reviews plugin
 
-- **Status:** Accepted
+- **Status:** Superseded by [0006](0006-review-skills-over-harness.md)
 - **Date:** 2026-08-15
 
 ## Context
@@ -58,7 +58,7 @@ plain notes rather than being dropped.
 scripts strip every GitLab token from the engine's environment; timeouts, `allow_failure: true`,
 `interruptible: true`, diff budgets, and turn caps bound cost. The reviewer never blocks a merge.
 
-**4. Scripts are copied into target repositories** (`.gitlab/codereview/`) by the
+**4. Scripts are copied into target repositories** (`.codereview/`) by the
 `setup-mr-review` command, because CI jobs cannot resolve `${CLAUDE_PLUGIN_ROOT}`. The canonical,
 tested copies stay in the plugin; re-running the command refreshes them.
 

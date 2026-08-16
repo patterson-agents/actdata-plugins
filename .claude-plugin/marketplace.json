@@ -162,8 +162,8 @@
       "name": "code-reviews",
       "source": "./plugins/code-reviews",
       "displayName": "Code Reviews",
-      "description": "Automated AI code review across GitHub, GitLab, and local agents. One review rubric and findings contract drive four surfaces: a GitLab CI job that reviews every merge request through swappable engines (docker-agent, Claude Code, Codex, Copilot) posting inline discussions and a sticky summary with a tokenless log fallback; a git pre-push hook with an engine-dispatching harness; an in-session review command; and GitHub Copilot native review instructions. Posting is deterministic script code, never an agent tool call, and the reviewer never blocks a merge. Relevant to anyone automating merge request or pull request review, wiring an AI reviewer into a pipeline or git hook, or configuring Copilot code review.",
-      "version": "0.1.0",
+      "description": "Automated code review as skills, not a runner. One methodology skill carries the review rubric - the defect checklist, the standing false-positive list, three severity tiers, and the bar that a finding must name a concrete failure scenario and cite path:line - and reads REVIEW.md, ACT_CODE_REVIEW.md, CLAUDE.md and AGENTS.md as layered guidance on any host or provider. A second skill installs that review into a harness that already exists: Anthropic's managed Code Review, GitHub Actions with claude-code-action, the GitLab-maintained Claude Code CI integration, local hooks and the built-in review command, GitHub Copilot instructions files, or docker-agent, Codex and Copilot CLI. Ships no runtime and invents no configuration syntax. Relevant to anyone reviewing a pull or merge request, automating review in a pipeline, tuning what a reviewer flags, or configuring Copilot code review.",
+      "version": "0.2.0",
       "author": {
         "name": "Daniel Bodnar"
       },
@@ -171,23 +171,24 @@
       "category": "engineering",
       "keywords": [
         "code-review",
-        "merge-requests",
         "pull-requests",
-        "gitlab",
+        "merge-requests",
         "github",
-        "docker-agent",
-        "git-hooks",
+        "gitlab",
         "copilot",
         "ci-cd",
-        "automation"
+        "git-hooks",
+        "automation",
+        "quality"
       ],
       "relevance": {
-        "topic": "automated code review of merge requests and pull requests",
+        "topic": "code review of pull requests and merge requests",
         "signals": {
           "filesRead": [
-            "**/.gitlab/codereview/**",
+            "**/REVIEW.md",
+            "**/ACT_CODE_REVIEW.md",
             "**/.github/instructions/**",
-            "**/.gitlab-ci.yml",
+            "**/.github/workflows/*review*.yml",
             "**/hooks/pre-push*"
           ]
         }

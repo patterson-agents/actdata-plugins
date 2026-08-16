@@ -100,7 +100,7 @@ copilot plugin install act-plugin-dev@actdata-plugins
 | **[`act-platform-engineering`](plugins/act-platform-engineering/)**<br>Operations | Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. | 23 skills · 7 agents · 9 commands |
 | **[`act-work-tracking`](plugins/act-work-tracking/)**<br>Workflow | Zoho Projects work tracking and operations reporting. | 6 skills · 1 agent · 3 commands |
 | **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD jobs, MCP, authentication, troubleshooting, and pipeline standards. | 10 skills · 1 agent · 3 commands · 1 MCP |
-| **[`code-reviews`](plugins/code-reviews/)**<br>Engineering | Automated AI code review across GitHub, GitLab, and local agents: CI merge-request review with swappable engines, a pre-push hook, an in-session command, and Copilot review instructions. | 3 skills · 2 commands · 2 scripts |
+| **[`code-reviews`](plugins/code-reviews/)**<br>Engineering | The code review methodology as a skill, plus installation into an existing harness: managed Code Review, GitHub Actions, GitLab CI, local hooks, or Copilot instructions. No runtime. | 2 skills · 10 references · 7 templates |
 
 ### Not yet shipped
 

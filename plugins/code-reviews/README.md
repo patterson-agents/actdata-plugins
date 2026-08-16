@@ -7,12 +7,11 @@
 
 # code-reviews
 
-Automated AI code review across GitHub, GitLab, and local agents.
+High-quality code review as skills, installable into the harness you already have.
 
-![skills](https://img.shields.io/badge/skills-3-00A8E1?labelColor=003767)
-![agents](https://img.shields.io/badge/agents-0-003767)
-![commands](https://img.shields.io/badge/commands-2-147EC2)
-![scripts](https://img.shields.io/badge/scripts-2-00817D)
+![skills](https://img.shields.io/badge/skills-2-00A8E1?labelColor=003767)
+![templates](https://img.shields.io/badge/templates-7-147EC2)
+![runtime](https://img.shields.io/badge/runtime-none-003767)
 ![deps](https://img.shields.io/badge/dependencies-none-58585B)
 
 </div>
@@ -24,54 +23,76 @@ Automated AI code review across GitHub, GitLab, and local agents.
 - [What this is](#what-this-is)
 - [What ships](#what-ships)
 - [Skills](#skills)
-- [Commands](#commands)
+- [Guidance layering](#guidance-layering)
+- [Harnesses](#harnesses)
 - [Install](#install)
-- [How a review runs](#how-a-review-runs)
-- [Configuration](#configuration)
-- [Security model](#security-model)
 - [What this plugin does NOT do](#what-this-plugin-does-not-do)
 - [Layout](#layout)
 
 ## What this is
 
-One review rubric and one findings contract, delivered on four surfaces:
+Two things, deliberately separated:
 
-| Surface | How | Setup |
-|---|---|---|
-| GitLab CI, every MR | A job runs an AI engine over the diff and posts the review | `/code-reviews:setup-mr-review gitlab-ci` |
-| Git hook / scripts | `codereview.sh` reviews a local diff with whatever engine is on PATH | `/code-reviews:setup-mr-review git-hook` |
-| In-session | `/code-reviews:review-mr` on any host the plugin is installed in | none |
-| GitHub Copilot native review | A `.github/instructions/` file carries the rubric | `/code-reviews:setup-mr-review copilot` |
+1. **The review methodology** — what a reviewer looks for, what it stays silent about, how a
+   finding earns its place, and how severity is graded. Provider-agnostic and harness-agnostic
+   prose, so any agent that can read files can follow it.
+2. **Installation into an existing harness** — GitHub, GitLab, or local, each using its own native
+   mechanism.
 
-Engines are swappable (`CODEREVIEW_ENGINE`): `docker-agent` (default, provider-agnostic, a pinned
-standalone binary -- no Docker daemon), `claude`, `codex`, `copilot`, or any command via
-`CODEREVIEW_ENGINE_CMD`. The engine only ever produces findings; deterministic script code does
-all posting.
+The review instructions and the thing that executes them are separate concerns. This plugin owns
+the first and configures the second; it is not a runner.
+
+> [!IMPORTANT]
+> There is no runtime here. No poster script, no engine dispatcher, no environment-variable
+> configuration language. Every surface is driven by its own vendor-supported harness, and
+> customization uses `REVIEW.md`, an existing convention, rather than a file format invented here.
 
 ## What ships
 
 | Component | Count | What it is |
 |---|---|---|
-| Skills | 3 | The review knowledge skill plus portable adapters for both commands |
-| Commands | 2 | Install a review surface; review one MR in-session |
-| Scripts | 2 | The CI wrapper (`post-mr-review.ts`) and the engine-dispatch harness (`codereview.sh`), with a fixture-driven test suite |
-| Templates | 4 | CI job, docker-agent config, Copilot instructions file, pre-push hook |
+| Skills | 2 | `review` (perform one) and `install` (wire one up) |
+| References | 10 | The methodology in depth, and one per harness |
+| Templates | 7 | Two guidance files, three CI/hook configs, one Copilot instructions file, one docker-agent config |
+| Runtime | 0 | By design |
 
 ## Skills
 
-| Skill | What it covers |
+| Skill | Does |
 |---|---|
-| [`mr-review-agent`](skills/mr-review-agent/) | The rubric and findings contract, engines, delivery modes, tokens, re-push semantics. Five references, four templates. |
+| [`/code-reviews:review`](skills/review/) | Reviews a change against the layered guidance and reports findings; posts only when asked, through the host's own tooling |
+| [`/code-reviews:install`](skills/install/) | Sets up the guidance files, then wires the review into a chosen harness |
 
-Plus `setup-mr-review` and `review-mr` adapter skills, which make both commands reachable from
-non-Claude hosts.
+## Guidance layering
 
-## Commands
+Four layers, each overriding the one before it. All are plain markdown.
 
-| Command | Does |
-|---|---|
-| `/code-reviews:setup-mr-review` | Install automated review as a CI MR job, a git hook, or Copilot instructions |
-| `/code-reviews:review-mr` | Review one merge request in-session against the shared rubric |
+| Layer | File | Purpose |
+|---|---|---|
+| Base | this plugin's `review` skill | The methodology |
+| Repository | `REVIEW.md` | Review policy: severity recalibration, nit caps, skip rules, repo-specific checks |
+| Organization | `ACT_CODE_REVIEW.md` | The ACT layer; opens with `@REVIEW.md` so it extends rather than replaces |
+| Project | `CLAUDE.md`, `AGENTS.md` | How to work in this codebase |
+
+`REVIEW.md` is Anthropic's documented convention and is read natively by managed Code Review. The
+`review` skill is what makes it portable: it reads the same file on every other surface, which
+nothing else does.
+
+> [!NOTE]
+> `REVIEW.md` is pasted verbatim by the managed product, so `@` imports are not expanded there.
+> Surfaces that cannot follow `@` receive a generated, clearly-marked flattened file, and `install`
+> tells you the regeneration step.
+
+## Harnesses
+
+| Surface | Harness | Posting mechanism |
+|---|---|---|
+| GitHub, managed | Claude GitHub App | Native inline comments and a neutral check run |
+| GitHub, self-hosted | `anthropics/claude-code-action` | `mcp__github_inline_comment__create_inline_comment` |
+| GitLab | GitLab-maintained Claude Code CI/CD integration | `mcp__gitlab` tools from `/bin/gitlab-mcp-server` |
+| Local | Built-in `/code-review`, or a pre-push hook | Terminal output |
+| GitHub Copilot | Copilot's native reviewer | Copilot's own comments |
+| Other engines | docker-agent, Codex, Copilot CLI | Terminal output |
 
 ## Install
 
@@ -80,59 +101,30 @@ claude plugin marketplace add patterson-agents/actdata-plugins
 claude plugin install code-reviews@actdata-plugins
 ```
 
-## How a review runs
+Then, in the repository to be reviewed:
 
-1. The wrapper collects the diff -- from the GitLab API in comment modes, from local git in
-   tokenless mode -- and caps it with per-file and total budgets. Truncations are named in the
-   summary so a partial review never poses as a full one.
-2. The selected engine reviews the diff against the rubric and emits the findings contract:
-   `{summary, findings: [{path, new_line, old_line, severity, title, body}]}`.
-3. Delivery per `CODEREVIEW_MODE`:
-
-| Mode | Requires | Result |
-|---|---|---|
-| `inline` (default) | `GITLAB_TOKEN` | A positioned discussion per finding plus a sticky summary note; positions GitLab rejects degrade to plain notes. On re-push, stale bot threads are resolved and the summary updates in place. |
-| `summary` | `GITLAB_TOKEN` | The sticky summary note only. |
-| `log` | nothing | Job log plus artifacts. Automatic fallback when `GITLAB_TOKEN` is unset. |
-
-The reviewer never blocks a merge: the job runs `allow_failure: true`, and the pre-push hook is
-advisory unless `CODEREVIEW_BLOCKING=1`.
-
-## Configuration
-
-CI/CD variables, all masked, created by the user (the plugin never handles values):
-
-| Variable | Required | Purpose |
-|---|---|---|
-| Provider API key (e.g. `ANTHROPIC_API_KEY`) | yes | Whatever key the chosen engine's `model:` needs |
-| `GITLAB_TOKEN` | for `inline`/`summary` | Project access token, `api` scope, Developer role. `CI_JOB_TOKEN` cannot create MR notes. |
-| `CODEREVIEW_MODE`, `CODEREVIEW_ENGINE` | no | Defaults: `inline`, `docker-agent` |
-| `DOCKER_AGENT_VERSION`, `DOCKER_AGENT_SHA256` | no | Pinned binary release and optional checksum |
-
-## Security model
-
-> [!CAUTION]
-> The diff under review is untrusted input to an unattended model. The shipped docker-agent config
-> is read-only (no shell, no network, no MCP); both scripts strip `GITLAB_TOKEN`,
-> `GITLAB_ACCESS_TOKEN`, and `CI_JOB_TOKEN` from every engine's environment; posting is
-> deterministic script code, never an agent tool call. Do not expose the GitLab token or the model
-> API key to pipelines from forks.
+```text
+/code-reviews:install
+```
 
 ## What this plugin does NOT do
 
 > [!CAUTION]
-> `setup-mr-review` writes to your repository (`.gitlab-ci.yml`, `.gitlab/codereview/`,
-> `.github/instructions/`, hooks). `review-mr` posts to an MR only on explicit confirmation.
+> `install` writes to your repository — `REVIEW.md`, workflow and pipeline files, hooks,
+> `.github/instructions/`. `review` posts to a pull or merge request only when explicitly asked.
 
-- **No credential handling.** Variables are set in the GitLab or GitHub UI; the plugin tells the
-  user which to create and cannot create them itself.
-- **The reviewer never gates a merge.** Generated findings are advice to verify, not policy.
-- **Copilot native reviews are configured, not executed.** The instructions file only takes effect
-  where Copilot code review is enabled on the GitHub side.
-- **No webhook or mention-driven triggering.** MR-event pipelines are native GitLab behavior;
-  comment-driven triggering needs a listener this plugin does not build.
-- **No pipeline standards authority.** GitLab pipeline security review lives in the
-  `act-gitlab-ci` plugin; neither plugin requires the other.
+- **It is not a harness.** It does not run agents, dispatch engines, or post comments through code
+  of its own. Where no supported harness exists, the answer is to use one, not to add a runner here.
+- **No credential handling.** It names the variables to create and where; it never reads or writes
+  a value.
+- **Reviews never gate a merge.** Findings are advice to verify. The CI templates run
+  non-blocking and the pre-push hook is advisory.
+- **Copilot reviews are configured, not executed.** The instructions file steers Copilot's
+  reviewer; it does not control what Copilot flags or how it grades.
+- **No webhook infrastructure.** GitLab does not run a job on a comment natively, and this plugin
+  does not build the listener that would.
+- **Not a quality guarantee.** A clean review means nothing obvious was found by one probabilistic
+  pass.
 
 ## Layout
 
@@ -140,13 +132,17 @@ CI/CD variables, all masked, created by the user (the plugin never handles value
 code-reviews/
   .claude-plugin/plugin.json
   README.md
-  commands/
-    setup-mr-review.md  review-mr.md
-  scripts/
-    post-mr-review.ts  codereview.sh
-    tests/mr-review/  run-tests.sh  unit.test.ts  fixtures/
   skills/
-    mr-review-agent/   SKILL.md + references/(5) + examples/(4)
-    setup-mr-review/   SKILL.md (adapter)
-    review-mr/         SKILL.md (adapter)
+    review/
+      SKILL.md
+      references/  what-to-report.md  severity-model.md
+                   guidance-layering.md  personas.md
+      templates/   REVIEW.md  ACT_CODE_REVIEW.md
+    install/
+      SKILL.md
+      references/  github-managed.md  github-actions.md  gitlab-ci.md
+                   local.md  copilot-native.md  non-claude-engines.md
+      templates/   claude-code-review.yml  gitlab-ci-review-job.yml
+                   pre-push  code-review.instructions.md  review-agent.yaml
+  scripts/tests/templates/run-tests.sh
 ```
