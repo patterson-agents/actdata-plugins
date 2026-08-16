@@ -246,8 +246,8 @@ describe("positions and markers", () => {
   });
 
   test("markers without a kind still yield their sha", () => {
-    expect(markerShaOf("<!-- act-gitlab-ci:mr-review sha=abc123abc123 -->")).toBe("abc123abc123");
-    expect(markerKindOf("<!-- act-gitlab-ci:mr-review sha=abc123abc123 -->")).toBeNull();
+    expect(markerShaOf("<!-- code-reviews:mr-review sha=abc123abc123 -->")).toBe("abc123abc123");
+    expect(markerKindOf("<!-- code-reviews:mr-review sha=abc123abc123 -->")).toBeNull();
   });
 });
 

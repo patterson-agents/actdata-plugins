@@ -97,5 +97,5 @@ Do not "fix" these without asking; they are recorded gaps, not oversights.
 - `docs/assets/` holds an **invented placeholder** wordmark. No ACT brand assets exist.
 - `.gitlab/` is empty. No ACT GitLab CI conventions were available to base a pipeline on.
 - `plugins/gitlab-standards/` is a `claude plugin init` scaffold, correctly left unregistered.
-- `plugins/code-review/`, `plugins/standards/`, `plugins/git-workflows/` are empty shells.
+- `plugins/standards/` and `plugins/git-workflows/` are empty shells.
 - `LicenseRef-ACT-Internal` is a provisional identifier; ACT's licensing posture is unconfirmed.

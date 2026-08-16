@@ -1,0 +1,7 @@
+{
+  "name": "code-reviews", "version": "0.1.0", "description": "Automated AI code review for merge requests, pull requests, git hooks, and interactive sessions.",
+  "author": { "name": "Daniel Bodnar", "email": "dbodnar@pattersonvet.com", "url": "https://github.com/patterson-agents" },
+  "homepage": "https://github.com/patterson-agents/actdata-plugins", "repository": "https://github.com/patterson-agents/actdata-plugins", "license": "LicenseRef-ACT-Internal",
+  "keywords": ["code-review", "merge-requests", "pull-requests", "gitlab", "github", "automation"], "skills": "./skills/",
+  "interface": { "displayName": "Code Reviews", "shortDescription": "Automated AI code review for MRs, PRs, hooks, and sessions", "longDescription": "Install an engine-agnostic AI reviewer: a GitLab CI job posting inline merge-request discussions, a git pre-push hook, an in-session review command, and GitHub Copilot native review instructions, all driven by one rubric and findings contract.", "developerName": "ACT Data", "category": "Engineering", "capabilities": ["Read", "Write"], "websiteURL": "https://github.com/patterson-agents/actdata-plugins", "defaultPrompt": ["Set up automated AI review of merge requests.", "Review this merge request against the shared rubric."] }
+}

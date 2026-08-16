@@ -310,10 +310,10 @@ export function buildPrompt(
 // the newest fallback note be mistaken for the summary and get overwritten.
 export type MarkerKind = "summary" | "finding";
 
-const MARKER_RE = /<!-- act-gitlab-ci:mr-review sha=([0-9a-f]{7,40})(?: kind=([a-z]+))? -->/;
+const MARKER_RE = /<!-- code-reviews:mr-review sha=([0-9a-f]{7,40})(?: kind=([a-z]+))? -->/;
 
 export function marker(sha: string, kind: MarkerKind): string {
-  return `<!-- act-gitlab-ci:mr-review sha=${sha} kind=${kind} -->`;
+  return `<!-- code-reviews:mr-review sha=${sha} kind=${kind} -->`;
 }
 
 export function markerShaOf(body: string): string | null {

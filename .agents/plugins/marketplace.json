@@ -5,6 +5,7 @@
     { "name": "act-plugin-dev", "source": { "source": "local", "path": "./plugins/act-plugin-dev" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Development" },
     { "name": "act-platform-engineering", "source": { "source": "local", "path": "./plugins/act-platform-engineering" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Operations" },
     { "name": "act-work-tracking", "source": { "source": "local", "path": "./plugins/act-work-tracking" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Workflow" },
-    { "name": "act-gitlab-ci", "source": { "source": "local", "path": "./plugins/act-gitlab-ci" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Engineering" }
+    { "name": "act-gitlab-ci", "source": { "source": "local", "path": "./plugins/act-gitlab-ci" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Engineering" },
+    { "name": "code-reviews", "source": { "source": "local", "path": "./plugins/code-reviews" }, "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" }, "category": "Engineering" }
   ]
 }

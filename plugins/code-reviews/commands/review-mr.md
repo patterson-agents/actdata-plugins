@@ -48,7 +48,7 @@ review says so explicitly. Never pad: an empty findings list is a valid, common 
 After reporting, offer to post the review to the MR -- and only proceed on an explicit yes:
 
 - With the glab CLI or a `GITLAB_TOKEN` available, post one summary note. Append the marker line
-  `<!-- act-gitlab-ci:mr-review sha=<head_sha> kind=summary -->` so the CI job's sticky-note
+  `<!-- code-reviews:mr-review sha=<head_sha> kind=summary -->` so the CI job's sticky-note
   logic recognizes and updates it instead of duplicating it. Say plainly that this marker also
   makes the CI review job treat the current head as already reviewed and skip its own run
   (including inline discussions) until the next push -- posting an in-session review supersedes

@@ -74,9 +74,7 @@ From the first word of `$ARGUMENTS`, or ask:
 
 ## Review before finishing
 
-For the `gitlab-ci` surface, run the pipeline checker over the result and report which findings
-came from this change:
-
-```bash
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" .gitlab-ci.yml
-```
+For the `gitlab-ci` surface, re-read the resulting `.gitlab-ci.yml` and confirm the job kept its
+bounds (`timeout`, `allow_failure: true`, `interruptible: true`, the draft-skip rules). If the
+`act-gitlab-ci` plugin is installed, also run its `/act-gitlab-ci:review-pipeline` command over
+the result and report which findings came from this change.

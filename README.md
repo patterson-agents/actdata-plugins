@@ -99,7 +99,8 @@ copilot plugin install act-plugin-dev@actdata-plugins
 | **[`act-plugin-dev`](plugins/act-plugin-dev/)**<br>Development | Build and review portable plugins while retaining host-specific guidance for commands, agents, hooks, and MCP. | 11 skills · 3 agents · 1 command |
 | **[`act-platform-engineering`](plugins/act-platform-engineering/)**<br>Operations | Assessment and operations for PostgreSQL, ZFS, Linux hosts and Proxmox VE. | 23 skills · 7 agents · 9 commands |
 | **[`act-work-tracking`](plugins/act-work-tracking/)**<br>Workflow | Zoho Projects work tracking and operations reporting. | 6 skills · 1 agent · 3 commands |
-| **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD jobs, automated MR review with swappable AI engines, MCP, authentication, troubleshooting, and pipeline standards. | 13 skills · 1 agent · 5 commands · 1 MCP |
+| **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD jobs, MCP, authentication, troubleshooting, and pipeline standards. | 10 skills · 1 agent · 3 commands · 1 MCP |
+| **[`code-reviews`](plugins/code-reviews/)**<br>Engineering | Automated AI code review across GitHub, GitLab, and local agents: CI merge-request review with swappable engines, a pre-push hook, an in-session command, and Copilot review instructions. | 3 skills · 2 commands · 2 scripts |
 
 ### Not yet shipped
 
@@ -108,7 +109,6 @@ therefore not installable. That is deliberate — an unfinished plugin should no
 
 | Directory | State |
 |---|---|
-| `code-review` | Empty shell. |
 | `standards` | Empty shell. |
 | `git-workflows` | Empty shell. |
 

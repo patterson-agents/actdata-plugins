@@ -63,7 +63,7 @@ config rather than by approval prompts:
 |---|---|
 | `shell` | An open shell plus prompt injection equals arbitrary execution |
 | `fetch` / remote `mcp` | Network egress is an exfiltration channel for anything in the environment |
-| any write-capable tool | A reviewer that can edit is an actor, and belongs to `claude-code-ci-jobs` instead |
+| any write-capable tool | A reviewer that can edit is an actor, and belongs to a Claude-Code-as-CI-actor job (the act-gitlab-ci plugin) instead |
 
 Widening the toolset is a security decision, not a convenience: everything in the job's
 environment (provider key included) is within reach of a prompt-injected agent with a shell.
