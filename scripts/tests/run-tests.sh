@@ -172,5 +172,63 @@ printf '%s\n' '{"name":"example","version":"2.0.0"}' > "$compat/plugins/example/
 expect_exit 1 "$COMPAT_CHECK" "$compat" "cross-host version drift fails"
 expect_rule "compat" "$COMPAT_CHECK" "$compat" "cross-host version drift"
 
+# Reset to matching versions for subsequent tests.
+printf '%s\n' '{"name":"example","version":"1.0.0"}' > "$compat/plugins/example/plugin.json"
+
+# Negative: wrong source directory in Claude catalog.
+wrong_src=$(mktemp -d "$WORK/compat-wrong-src.XXXXXX")
+cp -r "$compat/." "$wrong_src/"
+printf '%s\n' '{"plugins":[{"name":"example","version":"1.0.0","source":"./plugins/other","relevance":{}}]}' > "$wrong_src/.claude-plugin/marketplace.json"
+expect_exit 1 "$COMPAT_CHECK" "$wrong_src" "wrong Claude source directory fails"
+expect_rule "compat" "$COMPAT_CHECK" "$wrong_src" "wrong Claude source"
+
+# Negative: stale entry present only in Copilot catalog (not in Claude).
+stale_copilot=$(mktemp -d "$WORK/compat-stale-copilot.XXXXXX")
+cp -r "$compat/." "$stale_copilot/"
+printf '%s\n' '{"plugins":[{"name":"example","version":"1.0.0","source":"./plugins/example"},{"name":"stale","version":"1.0.0","source":"./plugins/stale"}]}' > "$stale_copilot/.github/plugin/marketplace.json"
+expect_exit 1 "$COMPAT_CHECK" "$stale_copilot" "host-only stale Copilot entry fails"
+expect_rule "compat" "$COMPAT_CHECK" "$stale_copilot" "stale Copilot entry"
+
+# Negative: stale entry present only in OpenAI catalog.
+stale_openai=$(mktemp -d "$WORK/compat-stale-openai.XXXXXX")
+cp -r "$compat/." "$stale_openai/"
+printf '%s\n' '{"plugins":[{"name":"example","source":{"source":"local","path":"./plugins/example"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Test"},{"name":"stale","source":{"source":"local","path":"./plugins/stale"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Test"}]}' > "$stale_openai/.agents/plugins/marketplace.json"
+expect_exit 1 "$COMPAT_CHECK" "$stale_openai" "host-only stale OpenAI entry fails"
+expect_rule "compat" "$COMPAT_CHECK" "$stale_openai" "stale OpenAI entry"
+
+# Negative: missing OpenAI manifest for a plugin.
+no_openai_manifest=$(mktemp -d "$WORK/compat-no-openai-manifest.XXXXXX")
+cp -r "$compat/." "$no_openai_manifest/"
+rm "$no_openai_manifest/plugins/example/.codex-plugin/plugin.json"
+expect_exit 1 "$COMPAT_CHECK" "$no_openai_manifest" "missing OpenAI manifest fails"
+expect_rule "compat" "$COMPAT_CHECK" "$no_openai_manifest" "missing OpenAI manifest"
+
+# Negative: missing Copilot manifest for a plugin.
+no_copilot_manifest=$(mktemp -d "$WORK/compat-no-copilot-manifest.XXXXXX")
+cp -r "$compat/." "$no_copilot_manifest/"
+rm "$no_copilot_manifest/plugins/example/plugin.json"
+expect_exit 1 "$COMPAT_CHECK" "$no_copilot_manifest" "missing Copilot manifest fails"
+expect_rule "compat" "$COMPAT_CHECK" "$no_copilot_manifest" "missing Copilot manifest"
+
+# Negative: missing OpenAI policy metadata.
+no_policy=$(mktemp -d "$WORK/compat-no-policy.XXXXXX")
+cp -r "$compat/." "$no_policy/"
+printf '%s\n' '{"plugins":[{"name":"example","source":{"source":"local","path":"./plugins/example"},"category":"Test"}]}' > "$no_policy/.agents/plugins/marketplace.json"
+expect_exit 1 "$COMPAT_CHECK" "$no_policy" "missing OpenAI policy metadata fails"
+expect_rule "compat" "$COMPAT_CHECK" "$no_policy" "missing OpenAI policy"
+
+# Negative: malformed JSON in a host catalog.
+bad_json=$(mktemp -d "$WORK/compat-bad-json.XXXXXX")
+cp -r "$compat/." "$bad_json/"
+printf '%s\n' '{invalid json' > "$bad_json/.agents/plugins/marketplace.json"
+expect_exit 1 "$COMPAT_CHECK" "$bad_json" "malformed catalog JSON fails"
+
+# Negative: exit 2 for missing root path.
+expect_exit 2 "$COMPAT_CHECK" "$WORK/does-not-exist" "missing path is 'could not evaluate'"
+
+# Negative: exit 2 when no argument is provided.
+bun "$COMPAT_CHECK" >/dev/null 2>&1
+if [ $? -ne 2 ]; then echo "FAIL compat-no-args: expected exit 2"; fail=1; else echo "ok   compat-no-args (exit 2)"; fi
+
 [ "$fail" -eq 0 ] && echo "ALL TESTS PASSED" || echo "TESTS FAILED"
 exit "$fail"

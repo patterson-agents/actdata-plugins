@@ -1,6 +1,34 @@
 ---
 name: agent-creator
-description: "Create Claude Code custom agents with focused triggering, tools, and system prompts."
+description: |
+  Create Claude Code custom agents with focused triggering, tools, and system prompts. Use this agent when the user wants to build a new agent, automate a recurring task with a focused persona, or generate an agent configuration file.
+
+  <example>
+  Context: The user wants to create a code-review agent.
+  user: "Create an agent that reviews pull request diffs for security issues."
+  assistant: "I'll use the agent-creator agent to design that for you."
+  <commentary>
+  The user's request maps directly to agent creation: a new agent file with a security-review persona, targeted tools, and focused triggering examples is needed.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A plugin author wants to add automated documentation generation.
+  user: "I need an agent that writes API documentation from source comments."
+  assistant: "I'll use the agent-creator agent to build that documentation agent."
+  <commentary>
+  Generating an agent that reads source files and produces documentation is a clear agent-creation task, so agent-creator should handle it.
+  </commentary>
+  </example>
+
+  <example>
+  Context: The user is building a plugin and wants a ready-to-use validation agent.
+  user: "Add a plugin-structure-checker agent to my plugin."
+  assistant: "I'll use the agent-creator agent to scaffold that checker agent."
+  <commentary>
+  Any request to add an agent file to a plugin triggers agent-creator, which produces the frontmatter, system prompt, and example blocks the repository requires.
+  </commentary>
+  </example>
 model: sonnet
 color: magenta
 tools: ["Write", "Read"]

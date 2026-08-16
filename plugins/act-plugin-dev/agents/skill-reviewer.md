@@ -1,6 +1,34 @@
 ---
 name: skill-reviewer
-description: "Review skill triggering, structure, progressive disclosure, and instruction quality."
+description: |
+  Review skill triggering, structure, progressive disclosure, and instruction quality. Use this agent when the user wants feedback on a SKILL.md file, is unsure whether a skill description will trigger reliably, or wants to improve the layout of skill content.
+
+  <example>
+  Context: A plugin author just wrote a new skill and wants a quality check.
+  user: "Review the infrastructure-inventory skill."
+  assistant: "I'll use the skill-reviewer agent to evaluate its structure and triggering."
+  <commentary>
+  Any request to review or evaluate a skill should route to skill-reviewer, which checks description trigger phrases, word count, progressive disclosure, and convention compliance.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A skill seems not to trigger when expected and the author wants to know why.
+  user: "My skill never comes up in suggestions — what's wrong with the description?"
+  assistant: "I'll use the skill-reviewer agent to diagnose the description's trigger phrases."
+  <commentary>
+  Triggering failures almost always trace to a weak description; skill-reviewer evaluates specificity, third-person phrasing, and example trigger queries.
+  </commentary>
+  </example>
+
+  <example>
+  Context: The user ported a skill from another repo and the gate fails on name mismatch.
+  user: "The verify-all gate fails on my skill name. Can you check it?"
+  assistant: "I'll use the skill-reviewer agent to compare the frontmatter name against the directory name."
+  <commentary>
+  Name-vs-directory mismatch is the single most common porting defect; skill-reviewer reports it as a critical finding with the exact fix.
+  </commentary>
+  </example>
 model: inherit
 color: cyan
 tools: ["Read", "Grep", "Glob"]

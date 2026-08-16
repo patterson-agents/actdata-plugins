@@ -42,6 +42,11 @@ service endpoints. Not as defaults, not as fallbacks, not as illustrative table 
 Site-specific values live in `.claude/<plugin-name>.local.md`, written by the operator.
 `.gitignore` carries `.claude/*.local.md` so one cannot be committed by accident.
 
+> **Amendment (2026-08-16):** The portable settings path is now `.agents/<plugin-name>.local.md`,
+> supported across all three hosts (Claude, OpenAI/Codex, GitHub Copilot). The original
+> `.claude/<plugin-name>.local.md` path is retained as a legacy fallback. `.gitignore` covers
+> `.agents/*.local.md` in addition to `.claude/*.local.md`.
+
 Every command and agent that needs a target follows one resolution order:
 
 1. An explicit argument

@@ -3,7 +3,7 @@
 How versions work here, and what is not yet decided.
 
 > [!NOTE]
-> This repository has never cut a release. There are no git tags, and everything sits at `0.1.0`.
+> This repository has shipped its first feature release. Plugins and the catalog are at `0.2.0`.
 > The sections below separate **what is enforced today** from **what needs deciding**, rather than
 > describing a process that does not exist.
 
@@ -31,7 +31,7 @@ carry the same plugin version.
 
 The **second and third must match**. The first is independent.
 
-Current state: every one of them is `0.1.0`.
+Current state: every one of them is `0.2.0`.
 
 ## What is enforced
 
@@ -78,7 +78,7 @@ Deliberately *not* breaking:
 
 ### The 0.x caveat
 
-Everything is `0.1.0`, and under semver a `0.x` version signals that the interface is not yet stable.
+Everything is `0.2.0`, and under semver a `0.x` version signals that the interface is not yet stable.
 That is currently accurate. It also means the major-bump rules above are theoretical until a `1.0.0`
 is cut, which is one of the open questions.
 
@@ -150,7 +150,7 @@ No `CHANGELOG.md` exists at either level. Conventional commits make one generata
 argument for per-plugin changelogs generated from commit scopes.
 
 **`[TBD: what the marketplace's own top-level version means, and when it changes.]`**
-It is `0.1.0` and has never moved. Candidates: it tracks catalog structure, or it is vestigial and
+It is `0.2.0`. Candidates: it tracks catalog structure, or it is vestigial and
 should be removed.
 
 **`[TBD: whether a plugin may be removed from the catalog, and what a consumer sees if it is.]`**
@@ -166,4 +166,4 @@ and small; it is worth revisiting before it is not.
 |---|---|
 | The version-consistency check | [`verification.md`](verification.md#4-marketplace-registration-and-version-consistency) |
 | Commit conventions | [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
-| What a marketplace entry needs | [`architecture.md`](architecture.md#two-manifests) |
+| What a marketplace entry needs | [`architecture.md`](architecture.md#three-catalogs-three-manifests) |

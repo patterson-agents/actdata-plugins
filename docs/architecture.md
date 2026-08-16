@@ -8,7 +8,7 @@ the machinery those rules protect.
 ## Table of contents
 
 - [The shape of the thing](#the-shape-of-the-thing)
-- [Two manifests](#two-manifests)
+- [Three catalogs, three manifests](#three-catalogs-three-manifests)
 - [How components are discovered](#how-components-are-discovered)
 - [Namespacing](#namespacing)
 - [`${CLAUDE_PLUGIN_ROOT}`](#claude_plugin_root)
@@ -68,16 +68,27 @@ This is gated. `scripts/verify-all.sh` step 4 fails the build on a plugin that e
 absent from the catalog, with one deliberate exception described in
 [Drafts](#drafts-the-one-permitted-gap).
 
-## Two manifests
+## Three catalogs, three manifests
 
-They serve different readers and duplicate exactly one field on purpose.
+Each plugin ships host-specific catalog entries and host-specific per-plugin manifests. They serve
+different readers and duplicate exactly one field on purpose.
 
-| | `.claude-plugin/marketplace.json` | `plugins/<name>/.claude-plugin/plugin.json` |
-|---|---|---|
-| Answers | "What can I install, and is it relevant to me?" | "What is this plugin, once installed?" |
-| Read by | The catalog browser, before install | The runtime, after install |
-| Scope | Every plugin | One plugin |
-| Required extras | `source`, `relevance` | none beyond identity |
+### Catalog entries (one per host)
+
+| | `.claude-plugin/marketplace.json` | `.agents/plugins/marketplace.json` | `.github/plugin/marketplace.json` |
+|---|---|---|---|
+| Host | Claude | OpenAI / Codex | GitHub Copilot |
+| Answers | "What can I install, and is it relevant to me?" | Same | Same |
+| Required extras | `source` (relative path), `relevance` | `source.path`, `source.source`, `policy`, `category` | `source` (relative path) |
+| Version field | `version` | — (not versioned) | `version` |
+
+### Per-plugin manifests (one per host per plugin)
+
+| | `plugins/<name>/.claude-plugin/plugin.json` | `plugins/<name>/.codex-plugin/plugin.json` | `plugins/<name>/plugin.json` |
+|---|---|---|---|
+| Host | Claude | OpenAI / Codex | GitHub Copilot |
+| Read by | The runtime, after install | Same | Same |
+| Scope | One plugin | One plugin | One plugin |
 
 ### The fields that must agree
 
@@ -239,10 +250,11 @@ portal IDs or endpoints, not even as defaults or fallbacks.
 Site-specific values live in a gitignored file the operator writes:
 
 ```text
-.claude/<plugin-name>.local.md
+.agents/<plugin-name>.local.md
 ```
 
-`.gitignore` carries `.claude/*.local.md` so one can never be committed by accident.
+`.gitignore` carries `.agents/*.local.md` so one can never be committed by accident.
+`.claude/<plugin-name>.local.md` is also supported as a legacy fallback.
 
 ### The contract
 

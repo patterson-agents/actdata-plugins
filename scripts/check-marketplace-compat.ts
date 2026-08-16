@@ -1,8 +1,25 @@
 #!/usr/bin/env bun
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-const root = resolve(process.argv[2] ?? ".");
+if (process.argv.length < 3) {
+  console.error("Usage: bun scripts/check-marketplace-compat.ts <repo-root>");
+  process.exit(2);
+}
+
+const root = resolve(process.argv[2]);
+
+try {
+  const st = statSync(root);
+  if (!st.isDirectory()) {
+    console.error(`ERROR: ${root} is not a directory`);
+    process.exit(2);
+  }
+} catch {
+  console.error(`ERROR: ${root}: could not evaluate (path missing or unreadable)`);
+  process.exit(2);
+}
+
 const problems: string[] = [];
 
 function json(path: string): Record<string, any> {
@@ -77,6 +94,7 @@ if (oe.source?.source !== "local" || typeof openaiSource !== "string" || resolve
 }
 if (typeof ge.source !== "string" || resolve(root, ge.source) !== pluginRoot) {
   problems.push(`${dir.name}: Copilot source must resolve to the plugin directory`);
+}
 }
 
 for (const problem of problems) console.log(`ERROR|marketplace|0|compat|${problem}`);

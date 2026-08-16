@@ -1,6 +1,34 @@
 ---
 name: plugin-validator
-description: "Validate plugin structure, manifests, components, registration, and ACT repository conventions."
+description: |
+  Validate plugin structure, manifests, components, registration, and ACT repository conventions. Use this agent when the user wants to check a plugin before opening a PR, after creating or modifying plugin components, or when the repository gate fails.
+
+  <example>
+  Context: A developer just finished building a new plugin and wants to verify it before submitting.
+  user: "Validate the act-platform-engineering plugin."
+  assistant: "I'll use the plugin-validator agent to run a full validation on that plugin."
+  <commentary>
+  Any explicit request to validate a plugin should route to plugin-validator, which checks manifests, naming, marketplace registration, and ACT conventions in one pass.
+  </commentary>
+  </example>
+
+  <example>
+  Context: CI has failed with a verify-all error and the author is not sure which rule fired.
+  user: "The gate is failing — can you check what's wrong with my plugin?"
+  assistant: "I'll use the plugin-validator agent to diagnose the gate failure."
+  <commentary>
+  Gate failures are precisely what plugin-validator diagnoses: it runs the same checks verify-all.sh runs and reports findings with file paths and fix suggestions.
+  </commentary>
+  </example>
+
+  <example>
+  Context: The user added a new skill and wants to confirm naming and registration are correct.
+  user: "I added a new skill directory. Does everything look right?"
+  assistant: "I'll use the plugin-validator agent to check the skill name, SKILL.md frontmatter, and marketplace entry."
+  <commentary>
+  Adding a skill introduces the most common failure mode (skill name does not match directory); plugin-validator checks that first among its critical findings.
+  </commentary>
+  </example>
 model: inherit
 color: yellow
 tools: ["Read", "Grep", "Glob", "Bash"]

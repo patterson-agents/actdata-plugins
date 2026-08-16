@@ -58,7 +58,7 @@ Current suites:
 
 | Suite | Covers |
 |---|---|
-| `scripts/tests/run-tests.sh` | Both repository validators |
+| `scripts/tests/run-tests.sh` | All three repository validators (`check-size.ts`, `check-no-binaries.ts`, `check-marketplace-compat.ts`) |
 | `plugins/act-work-tracking/scripts/tests/run-tests.sh` | `zoho-create.sh`, 17 assertions |
 | `plugins/act-gitlab-ci/scripts/tests/run-tests.sh` | `check-pipeline.ts`, 23 assertions |
 
@@ -182,7 +182,7 @@ When frontmatter fails to parse, the component still loads, with every field dro
 
 ## The validators
 
-Both live in `scripts/`, import only `node:*` builtins, and run under `bun`.
+All three live in `scripts/`, import only `node:*` builtins, and run under `bun`.
 
 ### Shared contract
 
@@ -195,7 +195,7 @@ Both live in `scripts/`, import only `node:*` builtins, and run under `bun`.
 | Exit 1 | `ERROR` findings present |
 | Exit 2 | Could not evaluate |
 
-`line` is always `0` for both, since they are whole-tree checks.
+`line` is always `0` for all three, since they are whole-tree checks.
 
 Exit 2 is distinct from exit 1 on purpose: "the tree is bad" and "I could not look at the tree" are
 different outcomes, and conflating them turns a broken validator into a green build.
@@ -233,6 +233,25 @@ SVG is exempt because it is text, and because it is the only image format this c
 
 Brand fonts are licensed through Adobe Fonts and must never be committed. That is a licensing
 constraint, not only a size one.
+
+### `check-marketplace-compat.ts`
+
+Verifies that every on-disk plugin is represented consistently across all three host catalogs
+(Claude, OpenAI, and Copilot) and that no stale entries exist only in the OpenAI or Copilot
+catalog.
+
+For each plugin directory that has a `.claude-plugin/plugin.json`:
+
+- All three per-plugin manifests (`.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
+  root `plugin.json`) must exist and carry the same `version`.
+- An entry must exist in all three host catalogs.
+- The Claude entry's `source` must resolve to the plugin's own directory.
+- The OpenAI entry's `source.path` must resolve to the plugin's directory, with `source.source`
+  set to `"local"`, and its `policy` must declare `AVAILABLE` / `ON_INSTALL`.
+- The Copilot entry's `source` must resolve to the plugin's directory.
+- No name may appear only in the OpenAI or Copilot catalog without a matching Claude entry.
+
+Usage requires a path argument; omitting it or passing a non-directory exits 2.
 
 ## Writing a test suite
 
@@ -273,7 +292,7 @@ someone needs to update the prose.
 ### Test-first
 
 Write the failing fixtures before the implementation, and confirm they fail for the right reason —
-missing script, not a typo in the test. Both repository validators came with their suite; new ones
+missing script, not a typo in the test. All three repository validators came with their suite; new ones
 should too.
 
 ## The pre-commit hook
