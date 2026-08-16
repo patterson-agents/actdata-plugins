@@ -27,6 +27,11 @@ const copilot = json(copilotPath);
 const claudeEntries = new Map((claude.plugins ?? []).map((entry: any) => [entry.name, entry]));
 const openaiEntries = new Map((openai.plugins ?? []).map((entry: any) => [entry.name, entry]));
 const copilotEntries = new Map((copilot.plugins ?? []).map((entry: any) => [entry.name, entry]));
+for (const [host, entries] of [["OpenAI", openaiEntries], ["Copilot", copilotEntries]] as const) {
+  for (const name of entries.keys()) {
+    if (!claudeEntries.has(name)) problems.push(`${String(name)}: present only in ${host} marketplace`);
+  }
+}
 
 for (const dir of readdirSync(join(root, "plugins"), { withFileTypes: true })) {
   if (!dir.isDirectory()) continue;
