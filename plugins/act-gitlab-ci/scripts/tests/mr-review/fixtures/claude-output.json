@@ -1,0 +1,9 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 48210,
+  "num_turns": 6,
+  "result": "{\"summary\":\"One concurrency defect in the retry queue; everything else in the diff is sound.\",\"findings\":[{\"path\":\"src/queue/retry.ts\",\"new_line\":88,\"old_line\":null,\"severity\":\"warning\",\"title\":\"Retry loop has no upper bound\",\"body\":\"`while (!done)` re-enqueues on every failure with no attempt counter or backoff. A permanently failing job spins forever. Bound the attempts and surface the terminal failure.\"}]}",
+  "session_id": "3f1c2a44-example"
+}

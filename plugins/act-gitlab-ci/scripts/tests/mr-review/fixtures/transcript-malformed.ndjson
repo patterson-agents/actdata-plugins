@@ -1,0 +1,4 @@
+{"type":"session_start","agent":"root","model":"anthropic/claude-opus-5"}
+{"type":"message","role":"assistant","content":"Here is my review of the diff: the charge path has a validation gap around line 42."}
+{"type":"structured_output","content":"{\"summary\":\"Truncated before the findings array closed\",\"findings\":[{\"path\":\"src/payments/charge.ts\",\"new_line\":42"}
+{"type":"error","message":"model stream ended unexpectedly"}
