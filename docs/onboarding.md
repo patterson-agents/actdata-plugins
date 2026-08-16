@@ -108,9 +108,13 @@ you edited and what a user gets.
 ## Orientation: how the repository is shaped
 
 ```text
-.claude-plugin/marketplace.json   # the catalog. A plugin is invisible without an entry here.
+.claude-plugin/marketplace.json   # Claude Code catalog
+.agents/plugins/marketplace.json  # ChatGPT and Codex catalog
+.github/plugin/marketplace.json   # GitHub Copilot catalog
 plugins/<name>/
-  .claude-plugin/plugin.json      # per-plugin manifest
+  .claude-plugin/plugin.json      # Claude manifest
+  .codex-plugin/plugin.json       # OpenAI manifest
+  plugin.json                     # Copilot manifest
   skills/<skill-name>/SKILL.md    # frontmatter name MUST equal the directory name
   agents/*.md  commands/*.md  hooks/hooks.json
   scripts/                        # bundled executables, referenced via ${CLAUDE_PLUGIN_ROOT}
