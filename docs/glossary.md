@@ -113,7 +113,8 @@ A reference nothing points at is dead weight; `SKILL.md` must name it.
 
 ### Settings file
 
-`.claude/<plugin-name>.local.md`, written by the operator, gitignored via `.claude/*.local.md`.
+`.agents/<plugin-name>.local.md`, written by the operator and gitignored via `.agents/*.local.md`.
+`.claude/<plugin-name>.local.md` remains supported as a legacy fallback.
 
 Holds the environment identifiers plugins deliberately do not ship — hostnames, addresses, IDs. See
 [ADR 0002](decisions/0002-config-driven-plugins.md).
