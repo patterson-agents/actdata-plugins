@@ -264,8 +264,7 @@ parity_seen=0
 for pair in \
   "code-review-prompt.md:gitlab-code-review-prompt.md" \
   "code-review-schema.json:gitlab-code-review-schema.json" \
-  "post-review-findings.sh:gitlab-post-review-findings.sh" \
-  "mention-sweep.sh:gitlab-mention-sweep.sh"
+  "post-review-findings.sh:gitlab-post-review-findings.sh"
 do
   live="$ROOT/.gitlab/${pair%%:*}"
   tpl="$GITLAB_TPL/${pair##*:}"
