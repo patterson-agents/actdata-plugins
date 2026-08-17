@@ -54,6 +54,26 @@ while [ "$i" -lt "$count" ]; do
     continue
   fi
 
+  # The body is model-controlled text, and the model can read files -- including
+  # ones the job did not intend it to, such as /proc/self/environ. A body
+  # carrying a value only this job knows is refused rather than published to the
+  # merge request. The value is never echoed, and a variable shorter than eight
+  # characters is skipped: an empty or trivial pattern matches every body.
+  leaked=""
+  for name in ANTHROPIC_API_KEY GITLAB_ACCESS_TOKEN GITLAB_TOKEN OAUTH_TOKEN CI_JOB_TOKEN; do
+    eval "secret=\${$name:-}"
+    [ "${#secret}" -ge 8 ] || continue
+    if printf '%s' "$finding" | jq -r '.body' | grep -qF -- "$secret"; then
+      leaked="$name"
+      break
+    fi
+  done
+  if [ -n "$leaked" ]; then
+    failed=$((failed + 1))
+    echo "review: refusing a finding on ${path}: body contains the value of $leaked" >&2
+    continue
+  fi
+
   # line_code is the SHA-1 of the file path, then the old and new line numbers,
   # with 0 for a side the line does not exist on.
   code=$(printf '%s' "$path" | sha1sum | cut -d' ' -f1)

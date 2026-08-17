@@ -200,9 +200,18 @@ validate-manifest:
       # Unset every variable glab accepts as a token, not just the one this job
       # sets: a group-level GITLAB_TOKEN or OAUTH_TOKEN would otherwise reach
       # the reviewer, where an allowed command could expand it into output.
+      #
+      # --safe-mode disables every customization loaded from the working tree --
+      # hooks, skills, plugins, MCP servers, custom commands and agents. That
+      # tree is the merge request's: a hook declared in .claude/settings.json
+      # would otherwise run inside this job, which holds the tokens the reviewer
+      # is deliberately denied. Built-in tools and permissions are unaffected,
+      # and the reviewer's guidance is read explicitly from REVIEW.md rather
+      # than discovered.
       env -u GITLAB_ACCESS_TOKEN -u GITLAB_TOKEN -u OAUTH_TOKEN \
       claude \
         -p "$(cat .tmp/review-prompt.md)" \
+        --safe-mode \
         --model "$CLAUDE_MODEL" \
         --effort "$CLAUDE_EFFORT" \
         --max-budget-usd "${CLAUDE_MAX_BUDGET_USD:-5.00}" \

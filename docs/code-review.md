@@ -94,7 +94,7 @@ Everything above is aimed at that.
 ## Security model
 
 **The diff under review is untrusted input.** Anyone who can open a merge request can write
-anything into a file the reviewer reads. Three properties follow, each of which took a real
+anything into a file the reviewer reads. Five properties follow, each of which took a real
 mistake to learn:
 
 1. **The reviewer holds no credential and no shell.** It runs with `Read Grep Glob` alone,
@@ -111,6 +111,13 @@ mistake to learn:
 3. **A note body is not inert.** GitLab executes quick actions — `/close`, `/merge`, `/assign` —
    when a body has one on a line of its own, under the token's permissions. The poster refuses a
    body shaped that way.
+4. **The working tree configures the tool that reads it.** Claude Code loads hooks, skills, and MCP
+   servers from the checkout, and the checkout is the merge request's — a hook declared in
+   `.claude/settings.json` would run inside the job that holds the tokens. The reviewer runs
+   `--safe-mode`, which loads none of it.
+5. **A finding body is model-controlled text**, and `Read` reaches beyond the repository —
+   `/proc/self/environ` among other places. The poster refuses to publish a body containing the
+   value of any credential in the job's environment.
 
 The token is a project access token with `api` scope, Developer role. `CI_JOB_TOKEN` cannot create
 merge request notes, which is why a project token exists at all.
