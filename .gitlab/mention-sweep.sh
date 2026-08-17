@@ -21,11 +21,24 @@
 # REVIEW_TRIGGER_TOKEN (a pipeline trigger token).
 
 set -eu
+# A failing glab in a pipeline must not be laundered into an empty list by the
+# jq that follows it; busybox ash supports pipefail.
+(set -o pipefail) 2>/dev/null && set -o pipefail
 
-BOT=${1:?usage: mention-sweep.sh <bot-username>}
 : "${CI_PROJECT_ID:?not set}"
 : "${CI_API_V4_URL:?not set}"
 : "${REVIEW_TRIGGER_TOKEN:?not set}"
+: "${GITLAB_ACCESS_TOKEN:?not set}"
+
+# Two identities, and conflating them is the trap. BOT_HANDLE is what a person
+# types to summon the review. BOT_USER owns the emoji award, and is whoever the
+# token belongs to -- for a project access token that is
+# `project_<id>_bot_<hash>`, not the display name and not the handle. Ask the
+# API rather than trusting configuration to keep them in step: if the award is
+# looked up under a name the token does not own, no mention is ever seen as
+# acted on and every sweep pays for the same review again.
+BOT_USER=$(glab api user | jq -r '.username')
+BOT_HANDLE=${1:-$BOT_USER}
 
 # The emoji that marks a mention as already acted on. Any name GitLab accepts
 # works; "eyes" reads as "seen" to a person looking at the thread.
@@ -33,6 +46,7 @@ SEEN_EMOJI="eyes"
 
 swept=0
 skipped=0
+failed=0
 
 # Open merge requests, most recently updated first. A project with a long tail
 # of stale merge requests should not make this sweep unbounded.
@@ -54,11 +68,11 @@ while [ "$i" -lt "$count" ]; do
           | jq -s 'add // []')
 
   # The most recent mention of the bot written by somebody else.
-  mention=$(printf '%s' "$notes" | jq -c --arg bot "$BOT" '
+  mention=$(printf '%s' "$notes" | jq -c --arg user "$BOT_USER" --arg handle "$BOT_HANDLE" '
     [ .[]
       | select(.system == false)
-      | select(.author.username != $bot)
-      | select(.body | contains("@" + $bot))
+      | select(.author.username != $user)
+      | select(.body | contains("@" + $handle))
     ] | last // empty')
 
   [ -z "$mention" ] && continue
@@ -68,8 +82,8 @@ while [ "$i" -lt "$count" ]; do
 
   # Already acted on? The award is the record, not the presence of a reply.
   awarded=$(glab api "projects/${CI_PROJECT_ID}/merge_requests/${iid}/notes/${note_id}/award_emoji" \
-            | jq --arg bot "$BOT" --arg e "$SEEN_EMOJI" \
-                 '[ .[] | select(.user.username == $bot and .name == $e) ] | length')
+            | jq --arg user "$BOT_USER" --arg e "$SEEN_EMOJI" \
+                 '[ .[] | select(.user.username == $user and .name == $e) ] | length')
   if [ "$awarded" -gt 0 ]; then
     skipped=$((skipped + 1))
     continue
@@ -80,8 +94,16 @@ while [ "$i" -lt "$count" ]; do
   # Mark it before triggering. Marking afterwards would loop forever if the
   # trigger call fails halfway; marking first can at worst miss one mention,
   # which a person can repeat, and cannot spend money in a loop.
-  glab api "projects/${CI_PROJECT_ID}/merge_requests/${iid}/notes/${note_id}/award_emoji" \
-    -X POST -f "name=${SEEN_EMOJI}" >/dev/null
+  #
+  # One merge request must not end the sweep: a fork branch the project cannot
+  # see makes the trigger call fail, and under `set -e` that would abort the
+  # loop and silently skip every later merge request.
+  if ! glab api "projects/${CI_PROJECT_ID}/merge_requests/${iid}/notes/${note_id}/award_emoji" \
+       -X POST -f "name=${SEEN_EMOJI}" >/dev/null 2>&1; then
+    echo "sweep: !${iid} could not be acknowledged; leaving it for the next sweep." >&2
+    failed=$((failed + 1))
+    continue
+  fi
 
   # A pipeline started by the trigger API is not a merge request pipeline, so
   # pass the merge request explicitly; the review job reads these.
@@ -89,16 +111,19 @@ while [ "$i" -lt "$count" ]; do
   # --form-string, not -F: curl reads a value beginning with @ as a filename,
   # and a mention comment begins with the bot's @name by definition. With -F
   # this both fails on ordinary use and turns a comment into a file read.
-  curl -fsS -X POST \
-    --form-string "token=${REVIEW_TRIGGER_TOKEN}" \
-    --form-string "ref=${branch}" \
-    --form-string "variables[REVIEW_MR_IID]=${iid}" \
-    --form-string "variables[REVIEW_DEPTH]=all" \
-    --form-string "variables[AI_FLOW_INPUT]=${body}" \
-    --form-string "variables[AI_FLOW_CONTEXT]=merge request !${iid}" \
-    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline" >/dev/null
-
-  swept=$((swept + 1))
+  if curl -fsS -X POST \
+       --form-string "token=${REVIEW_TRIGGER_TOKEN}" \
+       --form-string "ref=${branch}" \
+       --form-string "variables[REVIEW_MR_IID]=${iid}" \
+       --form-string "variables[REVIEW_DEPTH]=all" \
+       --form-string "variables[AI_FLOW_INPUT]=${body}" \
+       --form-string "variables[AI_FLOW_CONTEXT]=merge request !${iid}" \
+       "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline" >/dev/null; then
+    swept=$((swept + 1))
+  else
+    echo "sweep: !${iid} is acknowledged but its review could not be started." >&2
+    failed=$((failed + 1))
+  fi
 done
 
-echo "sweep: triggered $swept review(s), skipped $skipped already acknowledged."
+echo "sweep: triggered $swept review(s), skipped $skipped already acknowledged, $failed failed."

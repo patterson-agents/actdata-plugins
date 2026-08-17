@@ -85,10 +85,10 @@ validate-manifest:
     # typical merge request faster and cheaper if that trade suits the project.
     CLAUDE_MODEL: "claude-opus-5"
     CLAUDE_EFFORT: "medium"
-    # CLAUDE_MAX_BUDGET_USD is deliberately not set here. A job-level variable
-    # outranks a project-level one, so declaring it would make the setting under
-    # Settings > CI/CD > Variables inert. The script applies the default below
-    # when the project does not set one.
+    # CLAUDE_MAX_BUDGET_USD is deliberately not set here. GitLab ranks a project
+    # variable above a job variable, so a project setting would win either way -
+    # but leaving it undeclared keeps one obvious place to look for the value.
+    # The script applies the default below when the project sets nothing.
   before_script:
     - apk add --no-cache git bash curl jq
     - mkdir -p .tmp
@@ -161,8 +161,8 @@ validate-manifest:
 
       # A note-event listener that calls the pipeline trigger API passes the
       # comment through as AI_FLOW_INPUT (see the GitLab CI/CD integration
-      # docs). Nothing sets it today, so this is inert until one exists; when
-      # one does, no change to this job is needed. The text is written by
+      # docs). The mention sweep sets it; so would a webhook listener, with no
+      # change to this job. The text is written by
       # anyone who can comment, so it is quoted as a request rather than
       # appended as instructions.
       if [ -n "${AI_FLOW_INPUT:-}" ]; then

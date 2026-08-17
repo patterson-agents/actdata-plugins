@@ -136,8 +136,9 @@ merge request notes, which is why a project token exists at all.
 | `CLAUDE_MAX_BUDGET_USD` | **project** variable | hard ceiling per review; defaults to 5.00 |
 | `--max-turns`, `timeout` | job | bound a review that turns out harder than expected |
 
-`CLAUDE_MAX_BUDGET_USD` is deliberately **not** declared in the job: a job-level variable outranks
-a project-level one, so declaring it would make the project setting inert.
+GitLab ranks a project variable above a job variable, so a project-level `CLAUDE_MAX_BUDGET_USD`
+wins whether or not the job declares one. The job leaves it undeclared anyway, so there is one
+obvious place to look for the value rather than two that disagree.
 
 ## Operating it
 
