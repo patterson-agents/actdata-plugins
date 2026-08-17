@@ -49,13 +49,17 @@ validate-manifest:
 
 # Automated code review on every non-draft merge request.
 #
-# CI/CD variables under Settings > CI/CD > Variables, both masked:
-#   ANTHROPIC_API_KEY     the Claude API key (required)
-#   GITLAB_ACCESS_TOKEN   project access token with the api scope (optional).
-#                         With it, findings post to the merge request via glab;
-#                         without it, the review prints to the job log only,
-#                         because CI_JOB_TOKEN cannot create merge request notes.
-# Do not expose these variables to pipelines from forks.
+# CI/CD variables under Settings > CI/CD > Variables:
+#   ANTHROPIC_API_KEY       the Claude API key (required, masked)
+#   GITLAB_ACCESS_TOKEN     project access token with the api scope (optional,
+#                           masked). With it, findings post to the merge request
+#                           via glab; without it, the review prints to the job
+#                           log only, because CI_JOB_TOKEN cannot create merge
+#                           request notes.
+#   CLAUDE_MAX_BUDGET_USD   spend ceiling for one review (optional, not masked).
+#                           Defaults to 5.00 when unset. Set it per project to
+#                           raise or lower the cap without editing this file.
+# Do not expose the two masked variables to pipelines from forks.
 #
 # The /bin/gitlab-mcp-server binary that GitLab's Duo-enabled runner images
 # provide is not present on standard Docker runners, so this job posts through
@@ -78,7 +82,10 @@ validate-manifest:
     # deeper pass, or run one from the pipeline UI when a change warrants it.
     CLAUDE_MODEL: "claude-sonnet-5"
     CLAUDE_EFFORT: "medium"
-    CLAUDE_MAX_BUDGET_USD: "1.00"
+    # CLAUDE_MAX_BUDGET_USD is deliberately not set here. A job-level variable
+    # outranks a project-level one, so declaring it would make the setting under
+    # Settings > CI/CD > Variables inert. The script applies the default below
+    # when the project does not set one.
   before_script:
     - apk add --no-cache git bash curl jq
     - mkdir -p .tmp
@@ -172,7 +179,7 @@ validate-manifest:
         -p "$(cat .tmp/review-prompt.md)" \
         --model "$CLAUDE_MODEL" \
         --effort "$CLAUDE_EFFORT" \
-        --max-budget-usd "$CLAUDE_MAX_BUDGET_USD" \
+        --max-budget-usd "${CLAUDE_MAX_BUDGET_USD:-5.00}" \
         --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*)" \
         --output-format json \
         --json-schema "$(cat .gitlab/code-review-schema.json)" \
