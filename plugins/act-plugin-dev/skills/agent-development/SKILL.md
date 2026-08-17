@@ -102,10 +102,10 @@ which loads only when the agent runs. See `references/triggering-examples.md` fo
 those scenarios well.
 
 **Best practices:**
-- Include 2-4 concrete examples
-- Show proactive and reactive triggering
-- Cover different phrasings of same intent
-- Explain reasoning in commentary
+- Keep it to one or two sentences ending in a delegation cue
+- Put 2-3 worked scenarios in the body's `## When to invoke` section
+- Cover proactive and reactive triggering in those scenarios
+- Say in each scenario why this agent rather than another
 - Be specific about when NOT to use the agent
 
 ### model (required)
@@ -254,7 +254,7 @@ See `examples/agent-creation-prompt.md` for complete template.
 ### Method 2: Manual Creation
 
 1. Choose agent identifier (3-50 chars, lowercase, hyphens)
-2. Write description with examples
+2. Write a short description with a delegation cue; put scenarios in `## When to invoke`
 3. Select model (usually `inherit`)
 4. Choose color for visual identification
 5. Define tools (if restricting access)
@@ -279,8 +279,8 @@ See `examples/agent-creation-prompt.md` for complete template.
 ### Description Validation
 
 **Length:** 10-5,000 characters
-**Must include:** Triggering conditions and examples
-**Best:** 200-1,000 characters with 2-4 examples
+**Must include:** Triggering conditions and a pointer to the body's worked scenarios
+**Best:** one or two sentences; scenarios live in `## When to invoke`, not here
 
 ### System Prompt Validation
 
@@ -415,7 +415,7 @@ To create an agent for a plugin:
 3. Create `agents/agent-name.md` file
 4. Write frontmatter with all required fields
 5. Write system prompt following best practices
-6. Include 2-4 triggering examples in description
+6. Add 2-3 worked scenarios under `## When to invoke` in the body
 7. Validate with `scripts/validate-agent.sh`
 8. Test triggering with real scenarios
 9. Document agent in plugin README
