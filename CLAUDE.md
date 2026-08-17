@@ -64,18 +64,34 @@ claude plugin validate .
 ## Layout
 
 ```text
-.claude-plugin/marketplace.json   # the catalog; a plugin is invisible without an entry
+.claude-plugin/marketplace.json   # Claude Code catalog; a plugin is invisible without an entry
+.agents/plugins/marketplace.json  # ChatGPT and Codex catalog
+.github/plugin/marketplace.json   # GitHub Copilot catalog
+REVIEW.md                         # repo review policy -- single source for every review surface
+ACT_CODE_REVIEW.md                # ACT org review layer; imports REVIEW.md
 plugins/<name>/
-  .claude-plugin/plugin.json      # no "skills": ["./"] when a skills/ directory exists
+  .claude-plugin/plugin.json      # Claude manifest; no "skills": ["./"] when skills/ exists
+  .codex-plugin/plugin.json       # OpenAI manifest
+  plugin.json                     # Copilot manifest
   skills/<skill-name>/SKILL.md    # frontmatter name == directory name
   agents/*.md  commands/*.md  hooks/hooks.json
 scripts/verify-all.sh             # the gate
 scripts/check-size.ts             # node:* builtins only, run by bun
 scripts/check-no-binaries.ts
+scripts/check-marketplace-compat.ts
 scripts/tests/run-tests.sh        # fixtures generated into .tmp/, never committed
 docs/assets/                      # placeholder brand marks -- see its README
 docs/decisions/                   # ADRs
 ```
+
+## Code review surfaces
+
+`REVIEW.md` (repo policy) plus `ACT_CODE_REVIEW.md` (org layer) drive every review surface. The
+`code-reviews` plugin's `review` skill reads both directly; `.github/workflows/claude-code-review.yml`
+invokes that skill on pull requests; the `code-review` job in `.gitlab-ci.yml` does the same on
+merge requests; `.github/instructions/code-review.instructions.md` is a flattened copy for GitHub
+Copilot review. When `REVIEW.md` or `ACT_CODE_REVIEW.md` changes, regenerate the Copilot
+instructions file (`/code-reviews:install`) rather than editing it by hand.
 
 ## Building a plugin
 
@@ -96,6 +112,4 @@ Do not "fix" these without asking; they are recorded gaps, not oversights.
 
 - `docs/assets/` holds an **invented placeholder** wordmark. No ACT brand assets exist.
 - `.gitlab/` is empty. No ACT GitLab CI conventions were available to base a pipeline on.
-- `plugins/gitlab-standards/` is a `claude plugin init` scaffold, correctly left unregistered.
-- `plugins/standards/` and `plugins/git-workflows/` are empty shells.
 - `LicenseRef-ACT-Internal` is a provisional identifier; ACT's licensing posture is unconfirmed.
