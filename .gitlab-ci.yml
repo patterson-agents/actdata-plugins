@@ -77,10 +77,10 @@ validate-manifest:
     # glab authenticates from GITLAB_ACCESS_TOKEN automatically; on a
     # self-managed instance it also needs the host.
     GITLAB_HOST: "$CI_SERVER_HOST"
-    # Review cost and latency knobs. Sonnet at medium effort reviews a typical
-    # merge request in about a minute; raise to claude-opus-5 / high for a
-    # deeper pass, or run one from the pipeline UI when a change warrants it.
-    CLAUDE_MODEL: "claude-sonnet-5"
+    # Review cost and latency knobs. Opus is the strongest reviewer and the
+    # reason the spend ceiling is set where it is; claude-sonnet-5 reviews a
+    # typical merge request faster and cheaper if that trade suits the project.
+    CLAUDE_MODEL: "claude-opus-5"
     CLAUDE_EFFORT: "medium"
     # CLAUDE_MAX_BUDGET_USD is deliberately not set here. A job-level variable
     # outranks a project-level one, so declaring it would make the setting under
