@@ -35,20 +35,58 @@ For each finding:
    for (let i = 0; i < catalog.plugins.length; i++) {
    ```
 
-3. Build the payload and post it, substituting the file path and the **new-file** line number:
+3. Anchor the thread. Pick the narrowest anchor that contains the problem — a reader should not
+   have to hunt for which line you mean.
+
+   **One line.** `new_line` is the line number in the *new* file:
 
    ```sh
    jq -n --rawfile body .tmp/body.md \
          --arg path '<path from the diff>' \
          --argjson line <line in the new file> \
          --argjson refs "$DIFF_REFS" \
-         '{body: $body, position: ($refs + {position_type: "text", new_path: $path, new_line: $line})}' \
+         '{body: $body, position: ($refs + {position_type: "text",
+                                            old_path: $path, new_path: $path,
+                                            new_line: $line})}' \
      > .tmp/note.json
+   ```
+
+   **A span of lines** — a loop, a function, a block that only makes sense read together. Add a
+   `line_range`, whose `line_code` is the SHA-1 of the file path, then the old and new line
+   numbers, with `0` standing in for a line that does not exist on that side:
+
+   ```sh
+   CODE=$(printf '%s' '<path>' | sha1sum | cut -d' ' -f1)
+   jq -n --rawfile body .tmp/body.md \
+         --arg path '<path>' --arg code "$CODE" \
+         --argjson first <first line> --argjson last <last line> \
+         --argjson refs "$DIFF_REFS" \
+         '{body: $body, position: ($refs + {position_type: "text",
+             old_path: $path, new_path: $path, new_line: $last,
+             line_range: {
+               start: {line_code: "\($code)_0_\($first)", type: "new", old_line: null, new_line: $first},
+               end:   {line_code: "\($code)_0_\($last)",  type: "new", old_line: null, new_line: $last}}})}' \
+     > .tmp/note.json
+   ```
+
+   **A whole file** — for something about the file itself (it should not exist, it belongs
+   elsewhere, it is missing a counterpart) rather than any line in it:
+
+   ```sh
+   jq -n --rawfile body .tmp/body.md --arg path '<path>' --argjson refs "$DIFF_REFS" \
+         '{body: $body, position: ($refs + {position_type: "file", old_path: $path, new_path: $path})}' \
+     > .tmp/note.json
+   ```
+
+   Then post whichever payload you built:
+
+   ```sh
    glab api "projects/$PROJECT_ID/merge_requests/$MR_IID/discussions" -X POST --input .tmp/note.json
    ```
 
-   A 400 from that call almost always means `new_line` is not a line the diff actually adds or
-   keeps. Re-read the hunk header and use a line the diff touches, rather than retrying blindly.
+   A 400 from that call almost always means the line is not one the diff actually adds or keeps.
+   Re-read the hunk header and use a line the diff touches, rather than retrying blindly. For a
+   line the change *deletes*, set `old_line` instead of `new_line` and use `type: "old"`.
 
 ## What not to do
 
