@@ -184,9 +184,10 @@ validate-manifest:
       # posts them. It holds no credential, no writes, and no posting command,
       # so the untrusted diff it reads cannot reach the project's API -- and
       # cannot rewrite the thing that does the posting either.
-      # env -u keeps the posting credential out of the reviewer's process, so
-      # the boundary holds even if a future tool grant is wider than intended.
-      env -u GITLAB_ACCESS_TOKEN \
+      # Unset every variable glab accepts as a token, not just the one this job
+      # sets: a group-level GITLAB_TOKEN or OAUTH_TOKEN would otherwise reach
+      # the reviewer, where an allowed command could expand it into output.
+      env -u GITLAB_ACCESS_TOKEN -u GITLAB_TOKEN -u OAUTH_TOKEN \
       claude \
         -p "$(cat .tmp/review-prompt.md)" \
         --model "$CLAUDE_MODEL" \
