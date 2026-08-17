@@ -116,11 +116,19 @@ validate-manifest:
         POSTING_MODE="blocking-only"
       fi
 
+      # The reviewer needs the diff range whether or not it can post, so derive
+      # it from the predefined merge request variables and prefer the API's
+      # copy when a token makes that available: those values are what the
+      # discussion positions are validated against.
+      DIFF_REFS=$(jq -nc --arg base "$CI_MERGE_REQUEST_DIFF_BASE_SHA" \
+                        --arg head "${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}" \
+                        '{base_sha: $base, head_sha: $head, start_sha: $base}')
       if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
-        DIFF_REFS=$(glab api "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID" | jq -c .diff_refs)
+        FROM_API=$(glab api "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID" | jq -c '.diff_refs // empty')
+        [ -n "$FROM_API" ] && DIFF_REFS="$FROM_API"
       else
-        DIFF_REFS=""
-        POSTING_MODE="no posting credentials in this job - print the review to stdout and state plainly that nothing was posted"
+        CAN_POST=""
+        POSTING_MODE="$POSTING_MODE (no posting credentials in this job; findings go to the job log)"
       fi
 
       {
@@ -173,7 +181,7 @@ validate-manifest:
       jq '(.result // .) | if type == "string" then fromjson else . end' \
         .tmp/claude-out.json > .tmp/findings.json
 
-      if [ -z "$DIFF_REFS" ]; then
+      if [ -z "${CAN_POST-yes}" ]; then
         echo "no posting credentials in this job; findings follow."
         jq -r '.findings[] | "--- \(.path)\(if .line then ":\(.line)" else "" end) ---\n\(.body)\n"' .tmp/findings.json
         exit 0

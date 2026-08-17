@@ -73,7 +73,10 @@ while [ "$i" -lt "$count" ]; do
       > "$WORK/payload.json"
   fi
 
-  if glab api "$ENDPOINT" -X POST --input "$WORK/payload.json" >/dev/null 2>"$WORK/err.txt"; then
+  # --input sends the file as the body but does not set a content type, and the
+  # API answers 415 without it.
+  if glab api "$ENDPOINT" -X POST -H "Content-Type: application/json" \
+       --input "$WORK/payload.json" >/dev/null 2>"$WORK/err.txt"; then
     posted=$((posted + 1))
     echo "review: posted a thread on ${path}${line:+:$line}"
   else
