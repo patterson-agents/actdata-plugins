@@ -13,5 +13,8 @@ It is a catalog of agent workflows, not an application package.
   bundled resources from the installed plugin or skill directory.
 - Store site configuration in `.agents/<plugin>.local.md`; support `.claude/<plugin>.local.md` as a
   legacy fallback. Never commit environment identifiers or credentials.
+- Use any modern JavaScript package manager (npm, pnpm, yarn, or bun) for the devDependencies.
+  `package-lock.json` is the lockfile CI installs from; other managers' lockfiles are gitignored
+  and must not be committed. The validators under `scripts/` run with `node` (v24+).
 - Use `apply_patch` for edits and run `sh scripts/verify-all.sh` before considering a change done.
 - Do not commit fonts, archives, Office files, PDFs, or raster images over 50 KiB.
