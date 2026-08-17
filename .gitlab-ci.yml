@@ -150,6 +150,22 @@ validate-manifest:
         *[!A-Za-z0-9._/-]*) echo "branch name outside [A-Za-z0-9._/-]; refusing to review"; exit 1 ;;
       esac
 
+      # Precompute the diff rather than letting the reviewer run git. `git diff`
+      # and `git log` both accept --output=<file>, so granting either as a
+      # "read-only" command in fact grants arbitrary file writes -- enough to
+      # overwrite the posting script that runs after the reviewer exits, with
+      # the token in its environment. The reviewer therefore gets no shell at
+      # all, and reads the change from a file.
+      BASE_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.base_sha')
+      HEAD_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.head_sha')
+      if ! git diff "${BASE_SHA}...${HEAD_SHA}" > .tmp/diff.patch 2>/dev/null; then
+        git fetch --no-tags -q origin "+refs/heads/${TARGET_BRANCH}:refs/remotes/origin/${TARGET_BRANCH}" 2>/dev/null || true
+        git diff "origin/${TARGET_BRANCH}...HEAD" > .tmp/diff.patch 2>/dev/null \
+          || git diff HEAD~1 > .tmp/diff.patch 2>/dev/null \
+          || : > .tmp/diff.patch
+      fi
+      echo "review: diff is $(wc -l < .tmp/diff.patch) lines."
+
       {
         echo "Merge request: !$MR_IID ($SOURCE_BRANCH into $TARGET_BRANCH)"
         echo "Project id: $CI_PROJECT_ID"
@@ -193,7 +209,7 @@ validate-manifest:
         --model "$CLAUDE_MODEL" \
         --effort "$CLAUDE_EFFORT" \
         --max-budget-usd "${CLAUDE_MAX_BUDGET_USD:-5.00}" \
-        --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*)" \
+        --allowedTools "Read Grep Glob" \
         --output-format json \
         --json-schema "$(cat .gitlab/code-review-schema.json)" \
         --max-turns 30 \

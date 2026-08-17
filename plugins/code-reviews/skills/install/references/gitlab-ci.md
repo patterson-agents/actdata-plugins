@@ -36,8 +36,8 @@ and opens merge requests. A reviewer is a different job with a different threat 
 it reads is written by whoever opened the merge request**, so any tool the model holds is a tool
 that untrusted text can aim.
 
-So the reviewer here runs read-only — `Read Grep Glob Bash(git diff:*) Bash(git log:*)` — and
-returns findings as data validated against `code-review-schema.json`
+So the reviewer here runs with `Read Grep Glob` and no shell at all, reads the change from a
+precomputed diff file, and returns findings as data validated against `code-review-schema.json`
 (`--output-format json --json-schema`). The pipeline then posts them. The model has no credential,
 no write tool, and no posting command.
 
