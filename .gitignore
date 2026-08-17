@@ -161,3 +161,6 @@ pnpm-lock.yaml
 # very identifiers the plugins are designed to exclude back into the repository.
 .claude/*.local.md
 .agents/*.local.md
+
+# Editor-local configuration
+.vscode/
