@@ -35,10 +35,10 @@ jobs:
         run: sh scripts/verify-all.sh
 
       # Advisory rather than gating: the CLI arrives over the network at job
-      # time, so a registry or CDN hiccup must not block the real gate above.
+      # time, so a registry hiccup must not block the real gate above. The npm
+      # registry install carries integrity metadata, unlike a piped script.
       - name: Validate marketplace manifest (claude plugin validate)
         continue-on-error: true
         run: |
-          curl -fsSL https://claude.ai/install.sh | bash
-          export PATH="$HOME/.local/bin:$PATH"
+          npm install -g @anthropic-ai/claude-code
           claude plugin validate .
