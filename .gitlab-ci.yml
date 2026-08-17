@@ -153,17 +153,34 @@ validate-manifest:
         } >> .tmp/review-prompt.md
       fi
 
-      # The reviewer's only write access is .gitlab/post-review-thread.sh, which
-      # posts one discussion on this merge request and nothing else. The diff it
-      # reads is untrusted input, so it must not hold a general `glab api`.
-      DIFF_REFS="$DIFF_REFS" \
+      # The reviewer runs read-only and returns findings as data; the pipeline
+      # posts them. It holds no credential, no writes, and no posting command,
+      # so the untrusted diff it reads cannot reach the project's API -- and
+      # cannot rewrite the thing that does the posting either.
       claude \
         -p "$(cat .tmp/review-prompt.md)" \
         --model "$CLAUDE_MODEL" \
         --effort "$CLAUDE_EFFORT" \
         --max-budget-usd "$CLAUDE_MAX_BUDGET_USD" \
-        --allowedTools "Read Grep Glob Write Bash(git diff:*) Bash(git log:*) Bash(jq:*) Bash(sha1sum:*) Bash(.gitlab/post-review-thread.sh:*)" \
-        --max-turns 25
+        --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*)" \
+        --output-format json \
+        --json-schema "$(cat .gitlab/code-review-schema.json)" \
+        --max-turns 30 \
+        > .tmp/claude-out.json
+
+      # --output-format json wraps the answer in a result envelope, and the
+      # structured result may arrive as an object or as a JSON string.
+      jq '(.result // .) | if type == "string" then fromjson else . end' \
+        .tmp/claude-out.json > .tmp/findings.json
+
+      if [ -z "$DIFF_REFS" ]; then
+        echo "no posting credentials in this job; findings follow."
+        jq -r '.findings[] | "--- \(.path)\(if .line then ":\(.line)" else "" end) ---\n\(.body)\n"' .tmp/findings.json
+        exit 0
+      fi
+
+      printf '%s' "$DIFF_REFS" > .tmp/diff-refs.json
+      .gitlab/post-review-findings.sh .tmp/findings.json .tmp/diff-refs.json
   # Bounds a task that turns out harder than expected.
   timeout: 20m
   # A probabilistic reviewer must never block a merge.

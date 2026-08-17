@@ -1,8 +1,8 @@
 # GitLab CI
 
-GitLab maintains its own Claude Code CI/CD integration. It is the harness; this plugin supplies the
-review guidance the job's prompt points at. Nothing bespoke is needed, and in particular no script
-that posts comments — the job's Claude Code process posts them itself through the GitLab MCP tools.
+GitLab maintains its own Claude Code CI/CD integration, and this plugin supplies the review
+guidance its prompt points at. The job here differs from the upstream quick-start in one structural
+way, described under [The reviewer never posts](#the-reviewer-never-posts).
 
 > [!NOTE]
 > The integration is in beta and maintained by GitLab, not Anthropic. Flags vary by CLI version;
@@ -11,44 +11,78 @@ that posts comments — the job's Claude Code process posts them itself through 
 ## Install
 
 Copy `templates/gitlab-ci-review-job.yml` into `.gitlab-ci.yml`, matching the project's existing
-stage names rather than appending a foreign-looking block, and copy
-`templates/gitlab-code-review-prompt.md` to `.gitlab/code-review-prompt.md`. If the project uses
-`include:` for shared templates, ask whether the job belongs in the template project instead.
+stage names rather than appending a foreign-looking block, plus its three companions:
 
-The prompt lives in its own file rather than inside the job's shell so that the instructions the
-reviewer follows can be read and tuned in a merge request, and so the suggestion-block syntax
-survives without a layer of YAML and shell escaping.
+| Template | Install to |
+|---|---|
+| `gitlab-code-review-prompt.md` | `.gitlab/code-review-prompt.md` |
+| `gitlab-code-review-schema.json` | `.gitlab/code-review-schema.json` |
+| `gitlab-post-review-findings.sh` | `.gitlab/post-review-findings.sh`, `chmod +x` |
 
-## Keeping the review quiet enough to leave on
+The job invokes the script by path, so a missing or non-executable copy fails at the moment a
+finding would have been posted. If the project uses `include:` for shared templates, ask whether
+the job belongs in the template project instead.
 
-An automated reviewer earns its place by being ignorable. The job therefore posts **only findings
-serious enough to block the merge** on the automatic pass, printing everything lesser to the job
-log; a pipeline started by hand from the UI (`$CI_PIPELINE_SOURCE == "web"`) reviews at every
-severity. It posts no summary note and says nothing when a change is clean — the discussion count
-and the pipeline status already report that the review ran.
+The prompt and schema live in their own files rather than inside the job's shell so the
+instructions the reviewer follows can be read and tuned in a merge request, and so
+suggestion-block syntax survives without a layer of YAML and shell escaping.
 
-The single most common reason teams mute a bot reviewer is a wall of general notes in the
-activity feed. Anchoring findings to lines (below) keeps them in the Changes tab, beside the code,
-where they behave like a colleague's review.
+## The reviewer never posts
 
-## How the job posts back
+The upstream quick-start gives the model `--permission-mode acceptEdits` with
+`--allowedTools "Bash Read Edit Write mcp__gitlab"`. That fits an *implementer* that writes code
+and opens merge requests. A reviewer is a different job with a different threat model: **the diff
+it reads is written by whoever opened the merge request**, so any tool the model holds is a tool
+that untrusted text can aim.
 
-Findings go up as **inline discussions** — threads anchored to a line in the diff, which render
-in the Changes tab, collapse with the file, and can be resolved. That needs the merge request's
-`diff_refs` (`base_sha`, `head_sha`, `start_sha`), which the job fetches once and hands to the
-prompt, plus a `new_path` and a `new_line` the diff actually touches:
+So the reviewer here runs read-only — `Read Grep Glob Bash(git diff:*) Bash(git log:*)` — and
+returns findings as data validated against `code-review-schema.json`
+(`--output-format json --json-schema`). The pipeline then posts them. The model has no credential,
+no write tool, and no posting command.
+
+> [!WARNING]
+> A wrapper script the model is allowed to *invoke* is not a substitute, if the model can also
+> **write**: it can overwrite the wrapper and then run it. Either the model has no write access at
+> all, or the posting step lives outside the model's reach. This design chooses the latter and
+> takes the write tool away as well.
+
+An additional benefit is turn count. Posting from inside the model costs several turns per finding
+— compose the body, build the payload, call the API — and a review of a large diff can exhaust
+`--max-turns` before it finishes. Returning data costs none.
+
+## How findings are anchored
+
+`post-review-findings.sh` turns each finding into an inline discussion — a thread anchored in the
+diff, which renders in the Changes tab, collapses with the file, and can be resolved. It needs the
+merge request's `diff_refs` (`base_sha`, `head_sha`, `start_sha`), which the job fetches once.
+
+GitLab accepts three anchors, and the script picks one from the fields the finding carries:
+
+| Finding has | `position_type` | Result |
+|---|---|---|
+| `line` | `text` | A thread on that line of the new file |
+| `start_line` + `line` | `text` + `line_range` | A thread spanning those lines |
+| neither | `file` | A thread on the file itself |
+
+Two details that cause a `400` if missed. **`old_path` is required alongside `new_path`**, even
+when the file was not renamed. And `line_code` is the SHA-1 of the file path, then the old and new
+line numbers, with `0` for a side the line does not exist on:
 
 ```sh
-jq -n --rawfile body .tmp/body.md --arg path "$FILE" --argjson line "$LINE" --argjson refs "$DIFF_REFS" \
-  '{body: $body, position: ($refs + {position_type: "text", new_path: $path, new_line: $line})}' \
-  > .tmp/note.json
-glab api "projects/$PROJECT_ID/merge_requests/$MR_IID/discussions" -X POST --input .tmp/note.json
+code=$(printf '%s' "$path" | sha1sum | cut -d' ' -f1)   # a12e1750..._0_10
 ```
 
-A `400` from that call nearly always means `new_line` is not a line the diff adds or keeps.
+> [!NOTE]
+> The `line_range` payload the script builds marks both ends `type: "new"`, so a span is only
+> valid across lines the diff **adds**. A span covering unchanged context or deleted lines needs
+> `context`/`old` types and the matching old line numbers; the prompt therefore tells the reviewer
+> to anchor to a single added line inside such a range instead.
 
-Where a fix is a single-line edit, the note body ends with a GitLab **suggestion block**, which
-renders as an Apply button on the thread:
+A `400` otherwise nearly always means the line is not one the diff touches. The script reports the
+finding into the job log rather than dropping it, and continues with the rest.
+
+Where a fix is a single-line edit, the body ends with a **suggestion block**, which GitLab renders
+with an Apply button:
 
 ````markdown
 ```suggestion:-0+0
@@ -56,8 +90,17 @@ for (let i = 0; i < catalog.plugins.length; i++) {
 ```
 ````
 
-`glab mr note create` posts a plain note into the activity feed instead: use it for something that
-genuinely concerns the whole change, not for per-finding output.
+## Keeping the review quiet enough to leave on
+
+An automated reviewer earns its place by being ignorable. The automatic pass returns **only
+findings serious enough to block the merge**, posts no summary note, and says nothing at all when
+a change is clean — the discussion count and pipeline status already report that it ran. The
+`code-review:deep` job is the same review at every severity, one manual click from the merge
+request's pipeline widget.
+
+The most common reason teams mute a bot reviewer is a wall of general notes in the activity feed.
+Anchoring findings to lines keeps them beside the code, where they behave like a colleague's
+review.
 
 Two mechanisms exist for authenticating those calls, and which one is available depends on the
 runner image:
@@ -72,14 +115,8 @@ glab reads `GITLAB_ACCESS_TOKEN` and `GITLAB_HOST` from the environment, so the 
 variables and runs no login step. Without a token the job still reviews — the output lands in the
 job log with an explicit note that nothing was posted, which keeps the failure visible.
 
-> [!IMPORTANT]
-> **The reviewer must not hold a general `glab api`.** The merge request diff is untrusted input:
-> anything a contributor can write into a file reaches the model's context. A broad
-> `Bash(glab api:*)` grant would hand that input a project access token with the `api` scope and
-> every endpoint and method it reaches, turning a prompt injection into arbitrary project
-> mutations. The template's whole write surface is instead one wrapper script,
-> `.gitlab/post-review-thread.sh`, which posts a single discussion on the merge request taken from
-> the job environment — the model chooses the note body, never the target.
+The credential reaches only `post-review-findings.sh`, never the model — see
+[The reviewer never posts](#the-reviewer-never-posts).
 
 > [!IMPORTANT]
 > Neither mechanism is the HTTP MCP server at `https://<host>/api/v4/mcp`. That one is for

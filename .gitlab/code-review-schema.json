@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "description": "Findings to post as inline discussions. Empty when the change is clean, which is the expected result on most merge requests.",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path as it appears in the diff, relative to the repository root."
+          },
+          "body": {
+            "type": "string",
+            "description": "The comment in GitLab-flavored Markdown: one bold sentence naming what breaks, then at most three sentences of failure scenario and fix, plus a suggestion block when the fix is a single-line edit."
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line in the new file to anchor the thread to. Omit to anchor the thread to the file itself."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line of a span, when the finding covers several lines the diff adds. Requires line to be set as the last line of the span."
+          }
+        },
+        "required": ["path", "body"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["findings"],
+  "additionalProperties": false
+}
