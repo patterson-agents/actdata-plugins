@@ -26,9 +26,10 @@
 #                           only, because CI_JOB_TOKEN cannot create MR notes.
 #   CLAUDE_MAX_BUDGET_USD   spend ceiling for one review (optional, not masked).
 #                           Defaults to 5.00 when unset. Set it per project to
-#                           change the cap without editing this file; a
-#                           job-level variable would outrank it, which is why
-#                           this template does not declare one.
+#                           change the cap without editing this file. A project
+#                           variable outranks a job-level one, so it wins either
+#                           way; this template declares none so there is one
+#                           obvious place to look for the value.
 # For Amazon Bedrock or Google Cloud instead, see gitlab-ci.md.
 #
 # Do not expose the two masked variables to pipelines from forks.
