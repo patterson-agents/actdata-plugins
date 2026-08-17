@@ -49,7 +49,18 @@ author may reasonably ignore. When torn between two levels, choose the lower one
 
 ## Volume
 
-Past roughly five minor comments, summarize the remainder as a count rather than posting each one.
+Report at most five minor comments per review; summarize any remainder as a count ("plus N similar
+items") rather than posting each one. If every finding is minor, open the summary with "No blocking
+issues."
+
+## Re-review
+
+After the first review of a change, suppress new minor comments and report only newly introduced
+defects.
+
+## Summary shape
+
+Open the summary with a count by severity. Lead with "no blocking issues" when that is true.
 
 ## Repository invariants
 

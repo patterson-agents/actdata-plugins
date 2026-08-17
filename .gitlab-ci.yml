@@ -47,13 +47,19 @@ validate-manifest:
   script:
     - claude plugin validate .
 
-# Automated code review on every non-draft merge request. The job's Claude Code
-# process posts merge request comments itself through the mcp__gitlab tools, so
-# no posting script is involved.
+# Automated code review on every non-draft merge request.
 #
-# Requires a masked CI/CD variable under Settings > CI/CD > Variables:
-#   ANTHROPIC_API_KEY   the Claude API key
-# Do not expose it to pipelines from forks.
+# CI/CD variables under Settings > CI/CD > Variables, both masked:
+#   ANTHROPIC_API_KEY     the Claude API key (required)
+#   GITLAB_ACCESS_TOKEN   project access token with the api scope (optional).
+#                         With it, findings post to the merge request via glab;
+#                         without it, the review prints to the job log only,
+#                         because CI_JOB_TOKEN cannot create merge request notes.
+# Do not expose these variables to pipelines from forks.
+#
+# The /bin/gitlab-mcp-server binary that GitLab's Duo-enabled runner images
+# provide is not present on standard Docker runners, so this job posts through
+# glab instead of the mcp__gitlab tools.
 code-review:
   stage: review
   image: node:24-alpine3.21
@@ -69,21 +75,21 @@ code-review:
   variables:
     GIT_DEPTH: "0"
   before_script:
-    - apk add --no-cache git bash
+    - apk add --no-cache git bash glab
     # The npm registry install carries integrity metadata, unlike a piped script.
     - npm install -g @anthropic-ai/claude-code
   script:
-    # Supplies the mcp__gitlab tools inside the job. This runner binary is not
-    # the HTTP MCP server at /api/v4/mcp.
-    - /bin/gitlab-mcp-server || true
-    - >
-      claude
-      -p "Review this merge request following the guidance in REVIEW.md and ACT_CODE_REVIEW.md,
-      including any file they reference with @. Report only findings that name a concrete failure
-      scenario and cite path:line. Post them on the merge request, one comment per unique issue,
-      with a summary note. Modify no files."
-      --allowedTools "Read Grep Glob mcp__gitlab"
-      --max-turns 25
+    - |
+      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+        glab auth login --hostname "$CI_SERVER_HOST" --token "$GITLAB_ACCESS_TOKEN"
+        POSTING="Post each finding on merge request !$CI_MERGE_REQUEST_IID with 'glab mr note create $CI_MERGE_REQUEST_IID --message ...', one note per unique issue, then a summary note."
+      else
+        POSTING="No posting credentials are available in this job, so print the full review to stdout and state clearly that nothing was posted."
+      fi
+      claude \
+        -p "Review merge request !$CI_MERGE_REQUEST_IID (branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME against $CI_MERGE_REQUEST_TARGET_BRANCH_NAME) following the guidance in REVIEW.md and ACT_CODE_REVIEW.md, including any file they reference with @. Diff the merge request with git. Report only findings that name a concrete failure scenario and cite path:line. $POSTING Modify no files." \
+        --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*) Bash(git fetch:*) Bash(glab mr note:*) Bash(glab mr view:*) Bash(glab mr diff:*)" \
+        --max-turns 25
   # Bounds a task that turns out harder than expected.
   timeout: 20m
   # A probabilistic reviewer must never block a merge.
