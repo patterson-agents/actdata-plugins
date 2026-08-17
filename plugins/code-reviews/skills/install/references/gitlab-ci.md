@@ -108,10 +108,29 @@ That is native and needs nothing else. Three refinements the template ships:
   change — use a manual job in the merge request pipeline instead.
 
 > [!WARNING]
-> `@claude`-on-comment is **not** native. GitLab does not run a job on a comment. It requires a
-> project webhook on Comments (notes) calling the pipeline trigger API with `AI_FLOW_INPUT`,
-> `AI_FLOW_CONTEXT`, and `AI_FLOW_EVENT`. That listener is separate infrastructure this plugin does
-> not provide. Say so rather than leaving the user with a correct job that never fires.
+> **Mention-driven review is not native.** GitLab does not run a job on a comment, so an
+> `@mention` of the review bot does nothing on its own. Anthropic's GitLab CI/CD documentation
+> says the same, and is explicit that the listener is yours: add a project webhook on Comments
+> (notes) *"to your event listener (if you use one)"*, and have that listener call the pipeline
+> trigger API with `AI_FLOW_INPUT` and `AI_FLOW_CONTEXT` when a comment contains the mention.
+> Say so rather than leaving someone with a correct job that never fires.
+
+### Being ready for a listener before you have one
+
+The job reads `AI_FLOW_INPUT` when it is set, so a listener can be added later without touching
+the pipeline. Until one exists the variable is unset and the block is inert.
+
+Quote that text as a request rather than appending it to the instructions. It is written by anyone
+who can comment on the project, so treating it as instructions hands the reviewer's tools to a
+commenter — which is why the reviewer's write access is one scoped script rather than `glab api`.
+
+Three ways to answer a mention, in increasing order of what they cost to run:
+
+| Approach | Latency | What it needs |
+|---|---|---|
+| A manual deep-pass job (`code-review:deep`) | Immediate, human-initiated | Nothing; it ships in this template |
+| A scheduled pipeline that sweeps open merge requests for unanswered mentions | The schedule interval | Nothing beyond CI |
+| A webhook listener calling the pipeline trigger API | Seconds | A service to host, secure, and monitor |
 
 ## Tokens
 
