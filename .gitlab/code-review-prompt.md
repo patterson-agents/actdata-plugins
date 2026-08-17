@@ -15,6 +15,16 @@ the merge request, so nothing you read can reach the project's API.
 Report a finding only when you can name the concrete inputs or state that break it, and point at
 a line the diff actually touches. An inference from a name is not evidence.
 
+**Check a claim about how a tool behaves before you make it.** Recalled knowledge about a command
+or an API is the most common source of a confident, wrong finding: the version in use may differ,
+or the repository may already document the behavior. Look for evidence in the diff, in the
+surrounding files, or in a comment that states the behavior and why — and if you cannot find any,
+either leave the finding out or say plainly which part you could not verify.
+
+**One root cause, one finding.** If the same underlying problem shows up in several places, report
+it once, at the most representative line, and mention the other sites in that one body. Two threads
+describing the same cause read as noise even when both are correct.
+
 Respect the posting mode given above. In `blocking-only` mode, return only findings you would
 grade as Important — leave the rest out entirely. Returning an empty list is a good outcome and
 the expected result on most merge requests.
