@@ -87,8 +87,23 @@ else
   fi
 fi
 
-# Check description field
-DESCRIPTION=$(echo "$FRONTMATTER" | grep '^description:' | sed 's/description: *//')
+# Check description field. A block scalar (description: |) carries its text on
+# indented continuation lines, so take everything from the description: line up
+# to the next top-level key, not just the header line.
+DESCRIPTION=$(echo "$FRONTMATTER" | awk '
+  /^description:/ {
+    line = $0
+    sub(/^description:[ ]*/, "", line)
+    if (line !~ /^[|>][+-]?$/ && line != "") print line
+    in_desc = 1
+    next
+  }
+  in_desc {
+    if ($0 ~ /^[^ \t]/) { in_desc = 0; next }
+    sub(/^[ \t]+/, "")
+    print
+  }
+')
 
 if [ -z "$DESCRIPTION" ]; then
   echo "❌ Missing required field: description"
