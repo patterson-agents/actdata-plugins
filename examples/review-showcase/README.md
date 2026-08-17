@@ -26,11 +26,14 @@ a first read, not a puzzle.
 ## Running it as a demo
 
 From a clone that has the GitLab remote (`git remote -v` shows it — add it with
-`git remote add gitlab <url>` if not):
+`git remote add gitlab <url>` if not). Branch from whichever branch carries the `code-review` job,
+and target that same branch: GitLab reads `.gitlab-ci.yml` from the merge request, so a merge
+request targeting a branch without the job produces a pipeline without a review.
 
 ```sh
 git switch -c demo/entitlements
 mkdir -p src && cp examples/review-showcase/entitlements.ts src/entitlements.ts
+sed -i '1,4d' src/entitlements.ts   # drop the fixture header; the reviewer should not see it
 git add src/entitlements.ts
 git commit -m "feat(entitlements): add seat and quota helpers"
 git push gitlab demo/entitlements -o merge_request.create
