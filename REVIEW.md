@@ -26,8 +26,9 @@ issues."
 - Anything `scripts/verify-all.sh` already enforces mechanically: registration, version agreement,
   name-matching, tracked binaries, the size budget, expanded plugin roots.
 - Generated files: compiled `*.lock.yml` workflows, package-manager lockfiles.
-- Vendored upstream reference content under `plugins/*/skills/*/references/` and `examples/`,
-  including its style.
+- Vendored upstream reference content, which lives under `plugins/*/skills/*/references/` and
+  `plugins/*/skills/*/examples/`, including its style. This does not cover the top-level
+  `examples/` directory, which is ACT-authored and reviewed like any other code.
 - Scratch and fixtures under `.tmp/`.
 
 ## Always check
