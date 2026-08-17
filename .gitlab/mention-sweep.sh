@@ -56,13 +56,17 @@ while [ "$i" -lt "$count" ]; do
   echo "sweep: !${iid} has an unanswered mention; triggering a review."
   # A pipeline started by the trigger API is not a merge request pipeline, so
   # pass the merge request explicitly; the review job reads these.
+  #
+  # --form-string, not -F: curl reads a value beginning with @ as a filename,
+  # and a mention comment begins with the bot's @name by definition. With -F
+  # this both fails on ordinary use and turns a comment into a file read.
   curl -fsS -X POST \
-    -F "token=${REVIEW_TRIGGER_TOKEN}" \
-    -F "ref=${branch}" \
-    -F "variables[REVIEW_MR_IID]=${iid}" \
-    -F "variables[REVIEW_DEPTH]=all" \
-    -F "variables[AI_FLOW_INPUT]=${pending}" \
-    -F "variables[AI_FLOW_CONTEXT]=merge request !${iid}" \
+    --form-string "token=${REVIEW_TRIGGER_TOKEN}" \
+    --form-string "ref=${branch}" \
+    --form-string "variables[REVIEW_MR_IID]=${iid}" \
+    --form-string "variables[REVIEW_DEPTH]=all" \
+    --form-string "variables[AI_FLOW_INPUT]=${pending}" \
+    --form-string "variables[AI_FLOW_CONTEXT]=merge request !${iid}" \
     "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/trigger/pipeline" >/dev/null
   swept=$((swept + 1))
 done
