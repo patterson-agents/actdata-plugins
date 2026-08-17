@@ -88,7 +88,7 @@ never fires.
 Run the checker over the result:
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" .gitlab-ci.yml
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" .gitlab-ci.yml
 ```
 
 A new AI job in an existing pipeline may surface pre-existing findings. Report them, and be clear

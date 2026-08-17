@@ -1,12 +1,12 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
  * check-pipeline -- a GitLab CI pipeline checker for the derived pipeline
  * standards.
  *
- * Zero dependencies, node: builtins only, run under bun.
+ * Zero dependencies, node: builtins only, run with node (v24+).
  *
  * Usage:
- *   bun check-pipeline.ts <file-or-directory>
+ *   node check-pipeline.ts <file-or-directory>
  *
  * Output: LEVEL|file|line|rule|message
  * Exit:   0 no errors, 1 ERROR findings, 2 could not evaluate
@@ -337,7 +337,7 @@ function collect(target: string): string[] {
 function main(): number {
   const target = process.argv[2];
   if (!target) {
-    console.error("usage: bun check-pipeline.ts <file-or-directory>");
+    console.error("usage: node check-pipeline.ts <file-or-directory>");
     return 2;
   }
 

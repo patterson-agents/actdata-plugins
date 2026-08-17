@@ -147,10 +147,12 @@ vite.config.ts.timestamp-*
 # scripts/tests/run-tests.sh generates its throwaway git repositories under .tmp/.
 .tmp/
 
-# Lockfiles other than bun.lock are a bug in this repository, not something to ignore --
-# they are listed here so an accidental one is at least never committed silently.
-package-lock.json
+# package-lock.json is the committed lockfile (npm ci in CI). Contributors may
+# use any package manager locally; other managers' lockfiles stay untracked so
+# they are never committed by accident.
+bun.lock
 yarn.lock
+pnpm-lock.yaml
 pnpm-lock.yaml
 
 # Per-plugin settings files. Plugins in this marketplace ship no environment identifiers --

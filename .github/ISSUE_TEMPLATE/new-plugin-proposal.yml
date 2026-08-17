@@ -83,7 +83,7 @@ body:
           required: true
         - label: I understand every skill's directory name and `SKILL.md` frontmatter `name` must be the identical kebab-case string, and that the gate fails on a mismatch.
           required: true
-        - label: I understand this repository is Bun-only, ships no binaries, and holds to a 2 MiB tracked-byte budget.
+        - label: I understand this repository ships no binaries and holds to a 2 MiB tracked-byte budget.
           required: true
         - label: Where a source is silent, I will write `[TBD: what is missing]` rather than inventing organizational policy.
           required: true

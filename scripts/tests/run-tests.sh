@@ -40,7 +40,7 @@ add_file() {
   _repo=$1; _rel=$2; _bytes=$3
   _full="$_repo/$_rel"
   mkdir -p "$(dirname "$_full")"
-  bun -e '
+  node -e '
     const fs = require("node:fs");
     const [file, n] = process.argv.slice(1);
     fs.writeFileSync(file, Buffer.alloc(Number(n), 65));
@@ -55,7 +55,7 @@ commit_repo() {
 
 expect_exit() {
   _want=$1; _script=$2; _path=$3; _label=$4
-  bun "$_script" "$_path" >"$WORK/out.$$" 2>"$WORK/err.$$"
+  node "$_script" "$_path" >"$WORK/out.$$" 2>"$WORK/err.$$"
   _got=$?
   if [ "$_got" -ne "$_want" ]; then
     echo "FAIL $_label: expected exit $_want, got $_got"
@@ -68,7 +68,7 @@ expect_exit() {
 
 expect_rule() {
   _rule=$1; _script=$2; _path=$3; _label=$4
-  if bun "$_script" "$_path" 2>/dev/null | grep -q "|$_rule|"; then
+  if node "$_script" "$_path" 2>/dev/null | grep -q "|$_rule|"; then
     echo "ok   rule $_rule reported ($_label)"
   else
     echo "FAIL rule $_rule NOT reported ($_label)"; fail=1
@@ -77,7 +77,7 @@ expect_rule() {
 
 expect_no_rule() {
   _rule=$1; _script=$2; _path=$3; _label=$4
-  if bun "$_script" "$_path" 2>/dev/null | grep -q "|$_rule|"; then
+  if node "$_script" "$_path" 2>/dev/null | grep -q "|$_rule|"; then
     echo "FAIL rule $_rule wrongly reported ($_label)"; fail=1
   else
     echo "ok   rule $_rule correctly absent ($_label)"
@@ -104,7 +104,7 @@ expect_rule "size/budget" "$SIZE_CHECK" "$big" "oversized tree"
 expect_exit 2 "$SIZE_CHECK" "$WORK/does-not-exist" "missing path is 'could not evaluate'"
 
 # Misuse: wrong argument count.
-bun "$SIZE_CHECK" >/dev/null 2>&1
+node "$SIZE_CHECK" >/dev/null 2>&1
 if [ $? -ne 2 ]; then echo "FAIL no-args: expected exit 2"; fail=1; else echo "ok   no-args (exit 2)"; fi
 
 echo "== check-no-binaries.ts =="
@@ -132,7 +132,7 @@ add_file "$raster" "small.jpg" 10000
 commit_repo "$raster"
 expect_exit 1 "$BIN_CHECK" "$raster" "oversized raster fails"
 expect_rule "binaries/oversized-raster" "$BIN_CHECK" "$raster" "60KB png"
-if bun "$BIN_CHECK" "$raster" 2>/dev/null | grep -q "small\.jpg"; then
+if node "$BIN_CHECK" "$raster" 2>/dev/null | grep -q "small\.jpg"; then
   echo "FAIL small.jpg wrongly flagged in raster tree"; fail=1
 else
   echo "ok   small.jpg (10KB) correctly not flagged"
@@ -152,7 +152,7 @@ expect_rule "binaries/archive" "$BIN_CHECK" "$office" "zip"
 expect_exit 2 "$BIN_CHECK" "$WORK/does-not-exist" "missing path is 'could not evaluate'"
 
 # Misuse: wrong argument count.
-bun "$BIN_CHECK" >/dev/null 2>&1
+node "$BIN_CHECK" >/dev/null 2>&1
 if [ $? -ne 2 ]; then echo "FAIL no-args: expected exit 2"; fail=1; else echo "ok   no-args (exit 2)"; fi
 
 echo "== check-marketplace-compat.ts =="
@@ -227,7 +227,7 @@ expect_exit 1 "$COMPAT_CHECK" "$bad_json" "malformed catalog JSON fails"
 expect_exit 2 "$COMPAT_CHECK" "$WORK/does-not-exist" "missing path is 'could not evaluate'"
 
 # Negative: exit 2 when no argument is provided.
-bun "$COMPAT_CHECK" >/dev/null 2>&1
+node "$COMPAT_CHECK" >/dev/null 2>&1
 if [ $? -ne 2 ]; then echo "FAIL compat-no-args: expected exit 2"; fail=1; else echo "ok   compat-no-args (exit 2)"; fi
 
 [ "$fail" -eq 0 ] && echo "ALL TESTS PASSED" || echo "TESTS FAILED"

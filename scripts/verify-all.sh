@@ -84,7 +84,7 @@ for manifest in plugins/*/.claude-plugin/plugin.json; do
   [ -f "$manifest" ] || continue
   manifest_count=$((manifest_count + 1))
   plugin_dir=$(basename "$(dirname "$(dirname "$manifest")")")
-  if ! declared=$(bun -e '
+  if ! declared=$(node -e '
     const fs = require("node:fs");
     try {
       const m = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
@@ -120,7 +120,7 @@ MARKETPLACE="$ROOT/.claude-plugin/marketplace.json"
 if [ ! -f "$MARKETPLACE" ]; then
   fail "marketplace registration (.claude-plugin/marketplace.json not found)"
 else
-  if bun -e '
+  if node -e '
     const fs = require("node:fs");
     const path = require("node:path");
     const root = process.argv[1];
@@ -201,7 +201,7 @@ fi
 # ---------------------------------------------------------------------------
 # 5. Cross-runtime manifests and marketplaces agree.
 # ---------------------------------------------------------------------------
-if bun "$ROOT/scripts/check-marketplace-compat.ts" "$ROOT"; then
+if node "$ROOT/scripts/check-marketplace-compat.ts" "$ROOT"; then
   pass "Claude + OpenAI + Copilot marketplace compatibility"
 else
   fail "Claude + OpenAI + Copilot marketplace compatibility"
@@ -212,13 +212,13 @@ fi
 #    suite (scripts/tests/run-tests.sh, already run in step 1); here they run against
 #    the whole repository, which is their real job.
 # ---------------------------------------------------------------------------
-if bun "$ROOT/scripts/check-no-binaries.ts" "$ROOT"; then
+if node "$ROOT/scripts/check-no-binaries.ts" "$ROOT"; then
   pass "no-binaries (scripts/check-no-binaries.ts)"
 else
   fail "no-binaries (scripts/check-no-binaries.ts)"
 fi
 
-if bun "$ROOT/scripts/check-size.ts" "$ROOT"; then
+if node "$ROOT/scripts/check-size.ts" "$ROOT"; then
   pass "size budget (scripts/check-size.ts)"
 else
   fail "size budget (scripts/check-size.ts)"

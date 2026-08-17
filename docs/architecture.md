@@ -205,7 +205,7 @@ will fight regardless of namespace.
 The literal token a plugin uses to reference its own bundled files:
 
 ```markdown
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" .gitlab-ci.yml
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" .gitlab-ci.yml
 ```
 
 It resolves at runtime to wherever the plugin was installed. Two rules:
@@ -315,7 +315,7 @@ import only `node:*` builtins.
 That is a deliberate property, not an accident of scope:
 
 > [!NOTE]
-> A dependency-free gate runs before `bun install` and cannot itself become a supply-chain surface.
+> A dependency-free gate runs before any package install and cannot itself become a supply-chain surface.
 > A validator that needed packages to run could not validate a tree whose packages had not been
 > vetted yet.
 
@@ -343,7 +343,7 @@ Two things follow:
 - **A change is testable immediately.** `claude plugin marketplace add .` against a local checkout
   installs exactly what is on disk.
 
-`package.json` exists for scripts and a single `@types/bun` devDependency. It is not a package
+`package.json` exists for scripts and a couple of devDependencies. It is not a package
 anyone installs; `private: true` says so.
 
 ## Further reading

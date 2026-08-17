@@ -21,23 +21,24 @@ jobs:
           # A full checkout keeps both honest.
           fetch-depth: 0
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          bun-version: v1.3
+          node-version: 24
+
+      # devDependencies only (a YAML parser for the template-parse suite); the
+      # validators themselves are dependency-free and run before this matters.
+      - name: Install dev dependencies
+        run: npm ci
 
       - name: Run the repository gate battery
         run: sh scripts/verify-all.sh
 
-      # The `claude` CLI is not present on GitHub-hosted runners by default. This step is
-      # marked continue-on-error so a missing CLI does not block the real gate above,
-      # while still surfacing a manifest schema error when the CLI is available.
-      # [TBD: install the CLI here once the org settles on a supported install path.]
+      # Advisory rather than gating: the CLI arrives over the network at job
+      # time, so a registry or CDN hiccup must not block the real gate above.
       - name: Validate marketplace manifest (claude plugin validate)
         continue-on-error: true
         run: |
-          if command -v claude >/dev/null 2>&1; then
-            claude plugin validate .
-          else
-            echo "claude CLI not found on this runner; skipping (see [TBD] note in ci.yml)."
-          fi
+          curl -fsSL https://claude.ai/install.sh | bash
+          export PATH="$HOME/.local/bin:$PATH"
+          claude plugin validate .

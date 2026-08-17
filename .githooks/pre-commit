@@ -19,7 +19,7 @@ ROOT=$(CDPATH= cd -- "$(git rev-parse --show-toplevel)" && pwd)
 cd "$ROOT"
 
 # --- secret scanning ---------------------------------------------------------------
-# Graceful skip when a scanner is not installed (install with: mise use trufflehog trivy).
+# Graceful skip when a scanner is not installed (install trufflehog and trivy however you prefer).
 # GitHub push protection remains the backstop.
 if command -v trufflehog >/dev/null 2>&1; then
   echo "pre-commit: trufflehog secret scan..."
@@ -30,7 +30,7 @@ if command -v trufflehog >/dev/null 2>&1; then
     exit 1
   fi
 else
-  echo "pre-commit: trufflehog not installed -- skipping secret scan (mise use trufflehog)."
+  echo "pre-commit: trufflehog not installed -- skipping secret scan."
 fi
 
 if command -v trivy >/dev/null 2>&1; then
@@ -42,7 +42,7 @@ if command -v trivy >/dev/null 2>&1; then
     exit 1
   fi
 else
-  echo "pre-commit: trivy not installed -- skipping secret scan (mise use trivy)."
+  echo "pre-commit: trivy not installed -- skipping secret scan."
 fi
 
 # --- the gate battery --------------------------------------------------------------

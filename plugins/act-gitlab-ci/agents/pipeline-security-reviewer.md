@@ -26,7 +26,7 @@ rather than asserting the conclusion.
 ## Start with the checker, do not stop there
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" <path>
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" <path>
 ```
 
 It is a regex scanner, not a YAML parser. Treat a clean run as **"nothing obvious found"**, never as

@@ -25,9 +25,9 @@ issues."
 
 - Anything `scripts/verify-all.sh` already enforces mechanically: registration, version agreement,
   name-matching, tracked binaries, the size budget, expanded plugin roots.
-- Generated files: compiled `*.lock.yml` workflows, `bun.lock`.
+- Generated files: compiled `*.lock.yml` workflows, package-manager lockfiles.
 - Vendored upstream reference content under `plugins/*/skills/*/references/` and `examples/`,
-  including its emoji and style.
+  including its style.
 - Scratch and fixtures under `.tmp/`.
 
 ## Always check
@@ -38,8 +38,8 @@ issues."
 - A version bump lands in both the plugin manifest and every catalog entry that names it.
 - Bundled scripts are referenced through `${CLAUDE_PLUGIN_ROOT}`, never a relative path that
   breaks after install or a resolved absolute path.
-- Shell scripts under `scripts/` stay POSIX sh; TypeScript runs with `bun` and imports `node:*`
-  builtins only, with no undeclared dependencies.
+- Shell scripts under `scripts/` stay POSIX sh; TypeScript validators import `node:*` builtins
+  only, with no undeclared dependencies.
 - Documentation that names counts, paths, or plugin lists still matches the tree it describes.
 
 ## Verification bar

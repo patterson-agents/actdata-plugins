@@ -48,18 +48,17 @@ claude plugin validate .
 
 ## Conventions checked in review
 
-- **Bun only.** `bun install`, `bun run`, `bunx`, `bun test`. Never npm, yarn, or pnpm. `bun.lock`
-  is the only lockfile.
-- **No `/tmp`.** Scratch goes in the gitignored `.tmp/`. A workspace hook enforces this.
-- **No emoji on ACT-authored surfaces** — READMEs, manifests, commands, agents, docs. Use GFM
-  alerts and tables. Vendored upstream reference content under `plugins/*/skills/*/references/`
-  and `examples/` is exempt; see
-  `plugins/act-plugin-dev/README.md#upstream-and-divergence` for why.
-- **No AI attribution** in commits or pull requests. No `Claude-Session:` trailers, no "Generated
-  with Claude Code" footers, no AI co-author lines.
+- **Prefer `.tmp/` over `/tmp`.** Work a session produces — test output, fetched artifacts,
+  generated content — should survive a reboot and be inspectable, so scratch goes in the
+  repository's gitignored `.tmp/` whenever the environment allows it. Keep plans and specs in the
+  repository too, not in a private plans directory.
 - **Conventional commits**, branch off `main`, never commit to `main` directly.
 - **Score new dependencies** with `socket package shallow npm pkg:npm/<name>@<version> --markdown`
   before adding them. Flag anything under 90.
+
+Individual developers and teams bring their own toolchain preferences (package manager, formatter,
+shell); this repository does not prescribe them. The validators under `scripts/` run with `node`
+(v24+) and import `node:*` builtins only, so they work regardless of package manager.
 
 ## Layout
 
@@ -76,7 +75,7 @@ plugins/<name>/
   skills/<skill-name>/SKILL.md    # frontmatter name == directory name
   agents/*.md  commands/*.md  hooks/hooks.json
 scripts/verify-all.sh             # the gate
-scripts/check-size.ts             # node:* builtins only, run by bun
+scripts/check-size.ts             # node:* builtins only, run with node
 scripts/check-no-binaries.ts
 scripts/check-marketplace-compat.ts
 scripts/tests/run-tests.sh        # fixtures generated into .tmp/, never committed

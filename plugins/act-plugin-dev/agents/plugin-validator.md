@@ -41,8 +41,6 @@ Adding a skill introduces the most common failure mode -- the skill name not mat
 | Marketplace registration | An entry for the plugin must exist in the root `.claude-plugin/marketplace.json`. |
 | Version consistency | The `version` in `plugin.json` must equal the `version` in the marketplace entry. |
 | Literal `${CLAUDE_PLUGIN_ROOT}` | No absolute path such as `/home/...` or `/workspaces/...` followed by `/plugins`, `/skills`, or `/hooks` may appear in any tracked file. |
-| Bun, not npm | `bun` / `bunx` / `bun test` in examples, never `npm` / `npx` / `yarn` / `pnpm`. |
-| No emoji | This marketplace uses GFM alerts and tables for emphasis. Emoji in markdown is a **minor** finding. |
 | No binaries | No fonts, PDFs, Office documents, archives, or raster images over 50 KiB. SVG is exempt. |
 | No `"skills": ["./"]` | That field is the single-skill template shape and breaks `skills/` auto-discovery. Flag it whenever a `skills/` directory is also present. |
 
@@ -143,14 +141,11 @@ Adding a skill introduces the most common failure mode -- the skill name not mat
     - An unregistered plugin is not installable; report that as **critical**
 
 11. **Check ACT Repository Conventions**:
-    - Grep the plugin for `npm `, `npx `, `yarn `, `pnpm ` — report each as a **major** finding
-      with the `bun` equivalent as the fix
     - Grep for expanded plugin roots:
       ```sh
       grep -rnE '(/home/|/workspaces/)[^"'"'"' ]*/(plugins|skills|hooks)/' .
       ```
       Any hit is **critical** — a resolved absolute path was written back into a tracked file
-    - Check markdown files for emoji; report as **minor**
     - Check for tracked binaries: fonts (`.woff`, `.woff2`, `.ttf`, `.otf`, `.eot`), `.pdf`,
       Office documents, `.zip`, and raster images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) over
       50 KiB
