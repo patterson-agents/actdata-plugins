@@ -159,7 +159,7 @@
       # cannot rewrite the thing that does the posting either.
       # env -u keeps the posting credential out of the reviewer's process, so
       # the boundary holds even if a future tool grant is wider than intended.
-      env -u GITLAB_ACCESS_TOKEN \
+      env -u GITLAB_ACCESS_TOKEN -u GITLAB_TOKEN -u OAUTH_TOKEN \
       claude \
         -p "$(cat .tmp/review-prompt.md)" \
         --model "$CLAUDE_MODEL" \
