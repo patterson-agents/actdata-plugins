@@ -7,10 +7,12 @@ Terms as this repository uses them. Several are overloaded elsewhere, and the di
 ### Agent
 
 A subagent defined at `agents/<name>.md`, delegated to for a bounded task. Discovered by YAML
-frontmatter, which must carry `name`, `description` with `<example>` blocks, `tools` and `model`.
+frontmatter, which must carry `name`, a one-to-two-sentence `description` ending in a delegation
+cue, `tools` and `model`.
 
-The `description` is what decides when it gets used, so the examples are load-bearing rather than
-illustrative.
+The `description` is what decides when it gets used. The worked scenarios that teach the
+orchestrator when to delegate live in the body's `## When to invoke` section, which is loaded only
+when the agent runs — descriptions are paid for in every session, scenarios are not.
 
 ### Catalog
 

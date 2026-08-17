@@ -271,36 +271,31 @@ Real open items, roughly by increasing difficulty. Each is genuinely unfinished;
 
 ### Warm-up
 
-**1. Fix the frontmatter parse errors in `act-plugin-dev`.**
-All three agents (`agent-creator`, `plugin-validator`, `skill-reviewer`) end their `description:`
-with a bare `Examples:`, which is a YAML plain-scalar error. Confirm with
-`claude plugin validate plugins/act-plugin-dev`. The fix is quoting; the value is that you will
-understand the failure mode described in [The gate](#the-gate) by having repaired it.
-
-**2. Audit `[TBD]` markers.**
+**1. Audit `[TBD]` markers.**
 Run the grep above. Each one is a real question someone needs to answer. Working out *who* owns each
 answer is a fast way to learn the repository's boundaries.
 
 ### Substantial
 
-**3. Close the gate's blind spot.**
+**2. Close the gate's blind spot.**
 Add a per-plugin `claude plugin validate plugins/<name>` step to `scripts/verify-all.sh`. It must skip
 gracefully when the CLI is absent, matching the advisory step already in `.github/workflows/ci.yml`.
-This prevents recurrence of task 1 rather than fixing one instance, and it is the highest-leverage
-change on this list.
+Frontmatter parse errors silently drop every field — including `allowed-tools` — and the gate cannot
+see them today; see [The gate](#the-gate). This is the highest-leverage change on this list.
 
-**4. Fill one of the empty shells.**
-`plugins/code-review/`, `plugins/standards/` and `plugins/git-workflows/` are empty directories with
-no manifest. Pick one, scope it with `/act-plugin-dev:create-plugin`, and ship it registered.
+**3. Extend `act-work-tracking`.**
+At two skills it is the thinnest registered plugin (the others carry six or seven). Scope a third
+skill against a real work-tracking need with `/act-plugin-dev:create-plugin`'s skill guidance, and
+ship it registered and versioned.
 
 ### Deeper
 
-**5. Rebalance `act-platform-engineering/skills/linux-host-tuning/`.**
+**4. Rebalance `act-platform-engineering/skills/linux-host-tuning/`.**
 Its `SKILL.md` is a router with no commands in the body; everything is one file-read away in
 `references/`. Compare against `proxmox-virtualization` and `observability`, which keep commands
 inline. Decide whether to inline `references/disk-health.md`, and write down why.
 
-**6. Resolve the pipeline standards conflict.**
+**5. Resolve the pipeline standards conflict.**
 `act-gitlab-ci/skills/pipeline-standards/` is translated from a standard that does not permit GitLab
 and whose approved-tool list excludes GitLab's built-in scanners. See
 [`_SOURCES.md`](../plugins/act-gitlab-ci/skills/pipeline-standards/_SOURCES.md). This is not a coding
