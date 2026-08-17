@@ -113,13 +113,17 @@ Everything above is aimed at that.
 anything into a file the reviewer reads. Three properties follow, each of which took a real
 mistake to learn:
 
-1. **The reviewer holds no credential.** It runs with `Read Grep Glob` and two git reads, returns
-   findings as data, and never calls the API. `GITLAB_ACCESS_TOKEN` is removed from its
-   environment.
+1. **The reviewer holds no credential and no shell.** It runs with `Read Grep Glob` alone,
+   reads the change from a precomputed `.tmp/diff.patch`, returns findings as data, and never
+   calls the API. Every variable glab accepts as a token is removed from its environment.
 2. **A wrapper the model may invoke is not a boundary if the model can also write.** An earlier
    design scoped the reviewer to one posting script — and left it a `Write` tool, so it could
    overwrite that script and run it. Either the model cannot write, or the posting step is out of
    its reach; this design does both.
+
+   The same trap has a quieter door: `git diff` and `git log` both accept `--output=<file>`, so
+   allowing either as a "read-only" command grants arbitrary file writes, including over the
+   posting script. That is why the diff is precomputed and the reviewer has no shell at all.
 3. **A note body is not inert.** GitLab executes quick actions — `/close`, `/merge`, `/assign` —
    when a body has one on a line of its own, under the token's permissions. The poster refuses a
    body shaped that way.
