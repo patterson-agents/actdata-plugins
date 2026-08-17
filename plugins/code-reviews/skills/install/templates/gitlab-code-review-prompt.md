@@ -81,7 +81,7 @@ For each finding:
    Then post whichever payload you built:
 
    ```sh
-   glab api "projects/$PROJECT_ID/merge_requests/$MR_IID/discussions" -X POST --input .tmp/note.json
+   .gitlab/post-review-thread.sh .tmp/note.json
    ```
 
    A 400 from that call almost always means the line is not one the diff actually adds or keeps.

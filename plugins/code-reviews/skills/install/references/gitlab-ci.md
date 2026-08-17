@@ -68,22 +68,18 @@ merge request. **Standard Docker runners do not have this binary** — invoking 
 a stock image (`node:24-alpine`, for example) the job posts through `glab` instead, authenticated
 with a project access token:
 
-```yaml
-script:
-  - |
-    if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
-      glab auth login --hostname "$CI_SERVER_HOST" --token "$GITLAB_ACCESS_TOKEN"
-      POSTING="Post each finding with 'glab mr note create ...'."
-    else
-      POSTING="Print the review to stdout and state that nothing was posted."
-    fi
-    claude -p "... $POSTING ..." \
-      --allowedTools "Read Grep Glob Bash(git diff:*) Bash(glab mr note:*) Bash(glab mr view:*)" \
-      --max-turns 25
-```
+glab reads `GITLAB_ACCESS_TOKEN` and `GITLAB_HOST` from the environment, so the job sets those as
+variables and runs no login step. Without a token the job still reviews — the output lands in the
+job log with an explicit note that nothing was posted, which keeps the failure visible.
 
-Without a token the job still reviews — the output lands in the job log with an explicit note that
-nothing was posted, which keeps the failure visible instead of silent.
+> [!IMPORTANT]
+> **The reviewer must not hold a general `glab api`.** The merge request diff is untrusted input:
+> anything a contributor can write into a file reaches the model's context. A broad
+> `Bash(glab api:*)` grant would hand that input a project access token with the `api` scope and
+> every endpoint and method it reaches, turning a prompt injection into arbitrary project
+> mutations. The template's whole write surface is instead one wrapper script,
+> `.gitlab/post-review-thread.sh`, which posts a single discussion on the merge request taken from
+> the job environment — the model chooses the note body, never the target.
 
 > [!IMPORTANT]
 > Neither mechanism is the HTTP MCP server at `https://<host>/api/v4/mcp`. That one is for
@@ -100,12 +96,16 @@ rules:
   - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 ```
 
-That is native and needs nothing else. Two refinements the template ships:
+That is native and needs nothing else. Three refinements the template ships:
 
 - **Skip drafts.** `CI_MERGE_REQUEST_DRAFT` exists only on GitLab 17.10 and later, so the template
   also matches a `Draft:` title prefix for older instances.
-- **Start manual.** For a first run, `- if: '$CI_PIPELINE_SOURCE == "web"'` alone lets credentials
-  and permissions be confirmed by someone who chose to run it.
+- **A manual deep pass.** `code-review:deep` is the same job at `when: manual` with every severity
+  reported, one click from the merge request's pipeline widget.
+- **Guard on the merge request.** Both jobs exit cleanly when `CI_MERGE_REQUEST_IID` is unset. A
+  pipeline started from the UI on a branch has **no** `CI_MERGE_REQUEST_*` variables, so keying a
+  review mode on `$CI_PIPELINE_SOURCE == "web"` reviews an empty merge request id rather than a
+  change — use a manual job in the merge request pipeline instead.
 
 > [!WARNING]
 > `@claude`-on-comment is **not** native. GitLab does not run a job on a comment. It requires a
