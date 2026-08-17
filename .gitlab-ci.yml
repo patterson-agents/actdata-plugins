@@ -80,6 +80,11 @@ code-review:
     - npm install -g @anthropic-ai/claude-code
   script:
     - |
+      # Branch names reach the model's prompt; reject anything outside a
+      # conservative character set rather than forwarding attacker-shaped input.
+      case "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" in
+        *[!A-Za-z0-9._/-]*) echo "branch name outside [A-Za-z0-9._/-]; refusing to review"; exit 1 ;;
+      esac
       if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
         glab auth login --hostname "$CI_SERVER_HOST" --token "$GITLAB_ACCESS_TOKEN"
         POSTING="Post each finding on merge request !$CI_MERGE_REQUEST_IID with 'glab mr note create $CI_MERGE_REQUEST_IID --message ...', one note per unique issue, then a summary note."
