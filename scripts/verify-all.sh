@@ -261,14 +261,24 @@ fi
 GITLAB_TPL="$ROOT/plugins/code-reviews/skills/install/templates"
 parity_bad=0
 parity_seen=0
+parity_missing=""
+parity_total=0
 for pair in \
   "code-review-prompt.md:gitlab-code-review-prompt.md" \
   "code-review-schema.json:gitlab-code-review-schema.json" \
   "post-review-findings.sh:gitlab-post-review-findings.sh"
 do
+  parity_total=$((parity_total + 1))
   live="$ROOT/.gitlab/${pair%%:*}"
   tpl="$GITLAB_TPL/${pair##*:}"
-  [ -f "$live" ] || continue
+  # The review job needs all three: it cats the prompt and the schema and
+  # executes the poster. Skipping an absent one would let a rename or a
+  # deletion pass here and fail at the moment a finding would be posted -- under
+  # allow_failure, quietly. A partial install is drift, not an absence.
+  if [ ! -f "$live" ]; then
+    parity_missing="$parity_missing ${pair%%:*}"
+    continue
+  fi
   parity_seen=$((parity_seen + 1))
   if [ ! -f "$tpl" ]; then
     echo "  missing template: ${pair##*:}"
@@ -280,6 +290,9 @@ do
 done
 if [ "$parity_seen" -eq 0 ]; then
   pass "gitlab review files match their templates (none installed here)"
+elif [ "$parity_seen" -ne "$parity_total" ]; then
+  echo "  partial install; missing under .gitlab/:$parity_missing"
+  fail "gitlab review files match their templates ($parity_seen of $parity_total installed)"
 elif [ "$parity_bad" -eq 0 ]; then
   pass "gitlab review files match their templates ($parity_seen file(s))"
 else

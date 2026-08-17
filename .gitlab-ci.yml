@@ -139,7 +139,12 @@ validate-manifest:
                         '{base_sha: $base, head_sha: $head, start_sha: $base}')
       if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
         FROM_API=$(glab api "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID" | jq -c '.diff_refs // empty')
-        [ -n "$FROM_API" ] && DIFF_REFS="$FROM_API"
+        # An `if`, not `[ ... ] && ...`: GitLab runs job scripts under `set -e`,
+        # where an AND-list whose test fails is a failing command, so an empty
+        # lookup would end the job rather than fall back to the derived refs.
+        if [ -n "$FROM_API" ]; then
+          DIFF_REFS="$FROM_API"
+        fi
       else
         CAN_POST=""
         POSTING_MODE="$POSTING_MODE (no posting credentials in this job; findings go to the job log)"
