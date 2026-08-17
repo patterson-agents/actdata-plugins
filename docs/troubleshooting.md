@@ -189,27 +189,21 @@ description: "Report coverage: collectors, dashboards"    # correct
 description: ... and here are the examples. Examples:     # breaks
 ```
 
-For a multi-line description with embedded blocks, use a block scalar:
-
-```yaml
-description: |
-  First line.
-
-  <example>
-  ...
-  </example>
-```
+For a genuinely multi-line description, use a block scalar (`description: |`) — though for agents,
+prefer a short single-line description with the scenarios in the body's `## When to invoke`
+section instead.
 
 > [!NOTE]
 > The validator stops at the first error. After fixing one, run it again — there may be more.
 
 ### An agent never gets delegated to
 
-**Cause:** The `description` lacks concrete `<example>` blocks, so there is nothing to match a
-situation against.
+**Cause:** The `description` describes what the agent is, not when to use it, and the body has no
+`## When to invoke` scenarios to match a situation against.
 
-**Fix:** Three examples, each a distinct scenario, each with a `<commentary>` explaining why this
-agent rather than another. Generic filler examples do not help.
+**Fix:** End the description with a delegation cue ("Use when...") plus a pointer to the body's
+worked scenarios, and put two or three scenarios — each a distinct situation, each saying why this
+agent rather than another — under `## When to invoke`. Generic filler scenarios do not help.
 
 ### A bundled script is not found at install time
 
