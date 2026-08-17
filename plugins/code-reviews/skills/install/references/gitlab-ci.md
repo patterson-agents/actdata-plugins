@@ -159,7 +159,8 @@ the pipeline. Until one exists the variable is unset and the block is inert.
 
 Quote that text as a request rather than appending it to the instructions. It is written by anyone
 who can comment on the project, so treating it as instructions hands the reviewer's tools to a
-commenter — which is why the reviewer's write access is one scoped script rather than `glab api`.
+commenter — which is why the reviewer holds no posting command at all, and the pipeline posts on
+its behalf after it exits.
 
 Three ways to answer a mention, in increasing order of what they cost to run:
 
