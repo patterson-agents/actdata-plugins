@@ -83,7 +83,7 @@ The glob is one level deep. A skill at `plugins/x/skills/a/b/SKILL.md` is not sc
 For each `plugins/*/.claude-plugin/plugin.json`: it must parse as JSON, and its `name` must equal the
 plugin's directory name.
 
-Parsing is done by `bun -e`, so a syntax error is reported with the JSON parser's own message.
+Parsing is done by `node -e`, so a syntax error is reported with the JSON parser's own message.
 
 ### 4. Marketplace registration and version consistency
 
@@ -182,13 +182,13 @@ When frontmatter fails to parse, the component still loads, with every field dro
 
 ## The validators
 
-All three live in `scripts/`, import only `node:*` builtins, and run under `bun`.
+All three live in `scripts/`, import only `node:*` builtins, and run under `node` (v24+).
 
 ### Shared contract
 
 | | |
 |---|---|
-| Usage | `bun scripts/<name>.ts <path>` |
+| Usage | `node scripts/<name>.ts <path>` |
 | Output | `LEVEL\|file\|line\|rule\|message` |
 | Levels | `ERROR`, `WARN`, `INFO` |
 | Exit 0 | Pass, no `ERROR` findings |
@@ -321,7 +321,7 @@ Bypass deliberately with `git commit --no-verify`, and say why.
 
 - `fetch-depth: 0`, because the validators read tracked files via `git ls-files` and the suites create
   throwaway git repositories
-- Bun via `oven-sh/setup-bun@v2`
+- Node 24 via `actions/setup-node`
 - `sh scripts/verify-all.sh`
 - An advisory `claude plugin validate .` step, `continue-on-error: true`, which skips when the CLI is
   absent from the runner

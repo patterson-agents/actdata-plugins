@@ -68,12 +68,13 @@ done
 
 # --- YAML templates parse -----------------------------------------------------
 
-if command -v bun >/dev/null 2>&1; then
+if command -v node >/dev/null 2>&1 && node -e 'require("js-yaml")' >/dev/null 2>&1; then
   for f in $(find "$PLUGIN_DIR/skills" -name '*.yml' -o -name '*.yaml'); do
     name=$(basename "$f")
-    if err=$(bun -e '
-      import { readFileSync } from "node:fs";
-      Bun.YAML.parse(readFileSync(process.argv[1], "utf8"));
+    if err=$(node -e '
+      const { load } = require("js-yaml");
+      const { readFileSync } = require("node:fs");
+      load(readFileSync(process.argv[1], "utf8"));
     ' "$f" 2>&1); then
       pass "$name parses as YAML"
     else
@@ -81,7 +82,7 @@ if command -v bun >/dev/null 2>&1; then
     fi
   done
 else
-  echo "  note: bun not installed; skipping YAML parse checks"
+  echo "  note: node with js-yaml not available; skipping YAML parse checks"
 fi
 
 # --- every referenced resource exists ----------------------------------------

@@ -147,7 +147,7 @@ landing-zone control that survives the CI platform change unchanged.
 ## Validator
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" <path>
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" <path>
 ```
 
 Takes a file or a directory. Prints `LEVEL|file|line|rule|message`. Exit 0 clean, 1 errors found, 2

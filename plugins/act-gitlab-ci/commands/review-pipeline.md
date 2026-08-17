@@ -12,7 +12,7 @@ assessed.
 ## Run the checker
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" ${ARGUMENTS:-.gitlab-ci.yml}
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-pipeline.ts" ${ARGUMENTS:-.gitlab-ci.yml}
 ```
 
 Output is `LEVEL|file|line|rule|message`. Exit 0 clean, 1 errors, 2 could not evaluate.

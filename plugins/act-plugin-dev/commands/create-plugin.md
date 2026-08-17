@@ -38,8 +38,6 @@ if they are violated.
 | **Register in the marketplace** | Every plugin needs an entry in `.claude-plugin/marketplace.json`, including a `relevance` block. An unregistered plugin is not installable. |
 | **Version in two places** | `plugins/<name>/.claude-plugin/plugin.json` and the plugin's entry in `.claude-plugin/marketplace.json` must carry the same version. Bump both together. |
 | **`${CLAUDE_PLUGIN_ROOT}` stays literal** | Never write an absolute path a tool happened to resolve it to. The gate greps for expanded forms and fails on them. |
-| **Bun, not npm** | `bun install`, `bun run`, `bunx`, `bun test`. `bun.lock` is the only lockfile. |
-| **No emoji** | Use GFM alerts (`> [!NOTE]`, `> [!WARNING]`) and tables for emphasis instead. |
 | **No binaries** | No fonts, PDFs, Office documents, archives, or raster images over 50 KiB. SVG is exempt at any size. |
 | **Conventional commits** | `<type>(<scope>): <summary>`, e.g. `feat(act-plugin-dev): add skill-reviewer agent`. |
 
@@ -252,7 +250,6 @@ if they are violated.
    - Write instructions FOR Claude (not TO user)
    - Provide usage examples and tips
    - Reference relevant skills if applicable
-   - Prefer `bun` / `bunx` over `npm` / `npx` in every example
 
 ### For Agents:
 1. Load agent-development skill using Skill tool
@@ -400,7 +397,6 @@ if they are violated.
    - For MCP plugins: Document required environment variables
    - For hook plugins: Explain hook activation and the off switch
    - For settings: Provide configuration templates
-   - Confirm no emoji crept in
 
 2. **Confirm marketplace registration is complete and consistent**:
    - The entry added in Phase 4 is still present in `.claude-plugin/marketplace.json`
@@ -476,7 +472,7 @@ Every component must meet these standards:
 - Uses kebab-case naming, with skill name identical to directory name
 - Has strong trigger conditions (skills/agents)
 - Includes working examples
-- Properly documented, with no emoji
+- Properly documented
 - Registered in `.claude-plugin/marketplace.json` with a matching version
 - Passes `sh scripts/verify-all.sh` and `claude plugin validate .`
 - Tested in Claude Code

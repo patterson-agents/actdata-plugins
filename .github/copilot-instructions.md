@@ -13,6 +13,5 @@ It is a catalog of agent workflows, not an application package.
   bundled resources from the installed plugin or skill directory.
 - Store site configuration in `.agents/<plugin>.local.md`; support `.claude/<plugin>.local.md` as a
   legacy fallback. Never commit environment identifiers or credentials.
-- Use Bun for JavaScript and TypeScript tooling. Do not add npm, Yarn, or pnpm lockfiles.
 - Use `apply_patch` for edits and run `sh scripts/verify-all.sh` before considering a change done.
 - Do not commit fonts, archives, Office files, PDFs, or raster images over 50 KiB.

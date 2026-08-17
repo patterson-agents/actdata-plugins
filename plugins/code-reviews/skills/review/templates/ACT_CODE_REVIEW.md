@@ -10,12 +10,17 @@ the two disagree, this file wins.
 > `CLAUDE.md` memory system. It is **not** expanded by Anthropic's managed Code Review, which reads
 > `REVIEW.md` alone. On that surface, install flattens both layers into `REVIEW.md`.
 
-## Toolchain
+## Durable, auditable work
 
-- **Bun only.** `bun install`, `bun run`, `bunx`, `bun test`. An `npm`, `yarn`, or `pnpm` lockfile
-  is a finding; `bun.lock` is the only lockfile.
-- **No Python.** A `.py` file or an invocation of `python`, `pip`, `uv`, or `poetry` is a finding.
-- **No `/tmp`.** Scratch files belong in a gitignored `.tmp/` inside the project.
+Prefer repo-local scratch (a gitignored `.tmp/`) over `/tmp`. The point is not the path: work an
+agent or a script produces — test output, fetched artifacts, generated content — should survive a
+reboot and be inspectable by a human, and ephemeral system temp directories defeat both. This is a
+guideline rather than an absolute; a container with a read-only root filesystem may leave `/tmp`
+as the only writable place. Flag `/tmp` in a tracked file when a repo-local path would have worked.
+
+The same reasoning applies to plans and specs: keep them in the repository (a `specs/` or openspec
+tree) rather than in a developer's private plans directory, so the plan that produced a change is
+reviewable alongside the change itself.
 
 ## Supply chain
 
@@ -30,11 +35,7 @@ dependency is not the same risk as a low supply-chain or vulnerability score.
 
 ## Repository hygiene
 
-- **No AI attribution.** A `Claude-Session:` trailer, a "Generated with Claude Code" footer, or an
-  AI co-author line in a commit message or pull request body is a finding.
 - **Conventional commits**: `<type>(<scope>): <summary>`.
-- **No emoji** on ACT-authored surfaces: READMEs, manifests, commands, agents, documentation. Use
-  GitHub alerts and tables instead. Vendored upstream content is exempt.
 
 ## Instructions are not output
 

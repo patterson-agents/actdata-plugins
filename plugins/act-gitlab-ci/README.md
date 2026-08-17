@@ -122,7 +122,7 @@ Minimum GitLab 18.6 for beta. Free, Premium and Ultimate all qualify.
 ## The pipeline checker
 
 ```sh
-bun plugins/act-gitlab-ci/scripts/check-pipeline.ts .gitlab-ci.yml
+node plugins/act-gitlab-ci/scripts/check-pipeline.ts .gitlab-ci.yml
 ```
 
 Output `LEVEL|file|line|rule|message`. Exit 0 clean, 1 errors, 2 could not evaluate. No dependencies.

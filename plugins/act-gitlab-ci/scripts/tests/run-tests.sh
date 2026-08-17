@@ -32,8 +32,8 @@ if [ ! -f "$CHECKER" ]; then
 fi
 pass "checker exists"
 
-if ! command -v bun >/dev/null 2>&1; then
-  echo "  note: bun not installed; skipping execution tests"
+if ! command -v node >/dev/null 2>&1; then
+  echo "  note: node not installed; skipping execution tests"
   echo "  $passed passed, $failed failed"
   [ "$failed" -eq 0 ] || exit 1
   exit 0
@@ -41,7 +41,7 @@ fi
 
 # --- compliant fixture -------------------------------------------------------
 
-out=$(bun "$CHECKER" "$SUITE_DIR/compliant/gitlab-ci.yml" 2>&1)
+out=$(node "$CHECKER" "$SUITE_DIR/compliant/gitlab-ci.yml" 2>&1)
 status=$?
 
 if [ "$status" -eq 0 ]; then
@@ -58,7 +58,7 @@ fi
 
 # --- violating fixture -------------------------------------------------------
 
-out=$(bun "$CHECKER" "$SUITE_DIR/violating/gitlab-ci.yml" 2>&1)
+out=$(node "$CHECKER" "$SUITE_DIR/violating/gitlab-ci.yml" 2>&1)
 status=$?
 
 if [ "$status" -eq 1 ]; then
@@ -116,7 +116,7 @@ deploy:
     - deploy
 YAML
 
-out=$(bun "$CHECKER" "$WORK/included.yml" 2>&1)
+out=$(node "$CHECKER" "$WORK/included.yml" 2>&1)
 if printf '%s' "$out" | grep -q 'coverage/includes-not-followed'; then
   pass "reports that include: cannot be followed"
 else
@@ -135,7 +135,7 @@ variables:
   API_KEY: "<your-api-key-here>"
 YAML
 
-out=$(bun "$CHECKER" "$WORK/placeholder.yml" 2>&1)
+out=$(node "$CHECKER" "$WORK/placeholder.yml" 2>&1)
 if printf '%s' "$out" | grep -q 'secrets/inline-literal'; then
   fail "placeholders are not flagged as inline secrets" "$out"
 else
@@ -144,13 +144,13 @@ fi
 
 # --- argument handling -------------------------------------------------------
 
-if bun "$CHECKER" >/dev/null 2>&1; then
+if node "$CHECKER" >/dev/null 2>&1; then
   fail "no argument exits non-zero"
 else
   [ $? -eq 2 ] && pass "no argument exits 2" || pass "no argument exits non-zero"
 fi
 
-if bun "$CHECKER" "$WORK/does-not-exist.yml" >/dev/null 2>&1; then
+if node "$CHECKER" "$WORK/does-not-exist.yml" >/dev/null 2>&1; then
   fail "missing target exits non-zero"
 else
   pass "missing target exits non-zero"

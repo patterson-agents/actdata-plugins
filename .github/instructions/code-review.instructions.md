@@ -63,8 +63,8 @@ This repository is a plugin marketplace; the install experience is the product. 
   silently drops every field, including `allowed-tools`).
 - Bundled scripts are referenced through `${CLAUDE_PLUGIN_ROOT}`, never a relative or resolved
   absolute path.
-- Shell scripts under `scripts/` stay POSIX sh; TypeScript runs with `bun` using `node:*`
-  builtins only, with no undeclared dependencies.
+- Shell scripts under `scripts/` stay POSIX sh; TypeScript validators import `node:*` builtins
+  only, with no undeclared dependencies.
 
 Do not report vendored upstream reference content under `plugins/*/skills/*/references/` and
 `examples/`, generated `*.lock.yml` workflows, or anything `scripts/verify-all.sh` already
@@ -72,14 +72,11 @@ enforces mechanically.
 
 ## Organization conventions
 
-- Bun only: an `npm`, `yarn`, or `pnpm` lockfile is a finding; `bun.lock` is the only lockfile.
-- No Python: a `.py` file or an invocation of `python`, `pip`, `uv`, or `poetry` is a finding.
-- No `/tmp`: scratch files belong in the gitignored `.tmp/`.
+- Prefer repo-local scratch (the gitignored `.tmp/`) over `/tmp` so generated work stays durable
+  and inspectable; flag `/tmp` in a tracked file when a repo-local path would have worked.
 - A new or upgraded dependency is blocking unless the change shows a `socket` score; flag any
   dimension under 90, naming which one.
-- No AI attribution in commits or pull request bodies; conventional commits
-  (`<type>(<scope>): <summary>`).
-- No emoji on ACT-authored surfaces; use GitHub alerts and tables instead.
+- Conventional commits (`<type>(<scope>): <summary>`).
 - Text describing how the work was requested must not appear in the artifact: no second person
   addressed to one reader, no "as requested", no session status, no machine-local counts or
   paths as fixtures.

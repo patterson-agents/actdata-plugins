@@ -79,7 +79,7 @@ placeholder in `act-plugin-dev`'s teaching material.
 ### The size budget failed
 
 ```sh
-bun scripts/check-size.ts .
+node scripts/check-size.ts .
 ```
 
 The `INFO` line reports total tracked bytes against the 2 MiB budget. Find the offender:
@@ -323,13 +323,13 @@ cannot mask a regression that would fail in CI.
 
 **Fix:** Generate fixtures at test-run time into `.tmp/` with a cleanup trap. Never commit them.
 
-### `bun: command not found` in a suite
+### `node: command not found` in a suite
 
 The gate runs suites with `sh`, and they inherit the environment. Guard tool use:
 
 ```sh
-if ! command -v bun >/dev/null 2>&1; then
-  echo "  note: bun not installed; skipping execution tests"
+if ! command -v node >/dev/null 2>&1; then
+  echo "  note: node not installed; skipping execution tests"
 fi
 ```
 
@@ -369,7 +369,7 @@ should come with an explanation.
 ### Python was rejected
 
 Python is forbidden repository-wide: no `python`/`python3`, no `pip`, no `.py` files. Use TypeScript
-under `bun`, or POSIX `sh`.
+under `node`, or POSIX `sh`.
 
 This is why `zoho-create.sh` accepts JSON only — its CSV path used a Python converter and was removed
 rather than ported.

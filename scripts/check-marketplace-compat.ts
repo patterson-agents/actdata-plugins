@@ -1,9 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 if (process.argv.length < 3) {
-  console.error("Usage: bun scripts/check-marketplace-compat.ts <repo-root>");
+  console.error("Usage: node scripts/check-marketplace-compat.ts <repo-root>");
   process.exit(2);
 }
 

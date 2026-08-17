@@ -27,24 +27,14 @@ checked mechanically; the rest are checked in review.
 | **Registration is part of shipping** | Register shipped plugins in `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and `.github/plugin/marketplace.json`. |
 | **Version everywhere** | Keep the Claude, OpenAI, and Copilot manifests and versioned catalog entries synchronized. |
 | **`${CLAUDE_PLUGIN_ROOT}` stays literal** | Every intra-plugin reference uses the literal token, never an absolute path a tool happened to resolve it to on someone's machine. The gate greps for expanded forms and fails on them. |
-| **Bun only** | `bun install`, `bun run`, `bunx`, `bun test`. `bun.lock` is the only lockfile; an `npm`, `yarn`, or `pnpm` lockfile in this repository is a bug to remove. |
-| **No `/tmp`** | Nothing is created or stored under `/tmp` — not scratch files, not build intermediates, not test fixtures. Scratch lives in the repository's gitignored `.tmp/`. This is a Patterson house standard enforced by a workspace hook. |
+| **Prefer `.tmp/` over `/tmp`** | Scratch, build intermediates, and test fixtures belong in the repository's gitignored `.tmp/` so generated work survives reboots and stays inspectable. A guideline rather than an absolute: environments with a read-only root may leave no alternative to `/tmp`. |
 | **No binaries** | No fonts, no PDFs, no Office documents, no archives, and no raster image over 50 KiB. SVG is exempt at any size. `scripts/check-no-binaries.ts` enforces this. Brand fonts are licensed through Adobe Fonts and must never be committed. |
 | **2 MiB tracked-byte budget** | `scripts/check-size.ts` sums `git ls-files` byte sizes, not `du` output — `du` block-accounting overstates a repository's real size substantially. |
-| **No emoji on ACT-authored surfaces** | READMEs, manifests, commands, agents, and docs use GFM alerts (`> [!NOTE]`, `> [!WARNING]`) and tables for emphasis. Vendored upstream reference content is exempt; see below. |
 | **Conventional commits** | `<type>(<scope>): <summary>`, e.g. `feat(act-plugin-dev): add skill-reviewer agent`. Types in use: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`. |
-| **No AI attribution** | No `Claude-Session:` trailers, no "Generated with Claude Code" footers, no AI co-author lines in commits or pull requests. |
 
-### The emoji exemption, stated precisely
-
-The no-emoji rule is a **brand surface** rule. It applies to what this marketplace authors and
-publishes. It does **not** apply to third-party reference material vendored into a plugin, where
-check and cross marks are semantic DO/DON'T markers and shell scripts use them as terminal status
-output. Stripping them would multiply the diff against upstream for no brand benefit.
-
-Because of that exemption, `scripts/verify-all.sh` deliberately carries **no** emoji check — a
-mechanical gate could not tell the two cases apart. The rule is enforced in review and by the
-`plugin-validator` agent, which reports emoji as a minor finding.
+Toolchain choices beyond these — package manager, formatter, editor — are up to the contributor
+and their team; this repository does not prescribe them. The validators under `scripts/` run with
+`node` (v24+) so they work in any setup.
 
 ## Adding a plugin
 
@@ -82,9 +72,9 @@ dimension is low — low *quality* on a build-time devDependency is a different 
 often more actionable than the scores.
 
 > [!NOTE]
-> The two validators in `scripts/` import only `node:*` builtins by design. Keeping them
-> dependency-free means the gate runs before `bun install` and cannot itself be a supply-chain
-> surface.
+> The validators in `scripts/` import only `node:*` builtins by design. Keeping them
+> dependency-free means the gate runs before any package install and cannot itself be a
+> supply-chain surface.
 
 ## Test-first
 

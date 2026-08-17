@@ -11,7 +11,7 @@ stages:
 
 verify-all:
   stage: verify
-  image: oven/bun:latest
+  image: node:24-alpine3.21
   variables:
     # scripts/check-size.ts and check-no-binaries.ts read tracked files via
     # `git ls-files`, and the test suites create throwaway git repositories
@@ -22,9 +22,12 @@ verify-all:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH'
   before_script:
-    # The bun image is Debian-based but minimal; verify-all.sh and the suites it
+    # The node alpine image is minimal; verify-all.sh and the suites it
     # discovers need git and a POSIX shell.
-    - apt-get update -qq && apt-get install -y -qq git >/dev/null
+    - apk add --no-cache git
+    # devDependencies only (a YAML parser for the template-parse suite); the
+    # validators themselves are dependency-free.
+    - npm ci
   script:
     - sh scripts/verify-all.sh
 
@@ -33,13 +36,13 @@ verify-all:
 # vouches for.
 validate-manifest:
   stage: verify
-  image: oven/bun:latest
+  image: node:24-alpine3.21
   allow_failure: true
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH'
   before_script:
-    - apt-get update -qq && apt-get install -y -qq curl >/dev/null
+    - apk add --no-cache curl bash
     - curl -fsSL https://claude.ai/install.sh | bash
     # The installer places claude in ~/.local/bin, which is not on PATH here.
     - export PATH="$HOME/.local/bin:$PATH"

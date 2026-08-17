@@ -10,10 +10,10 @@
 ACT Data's institutional knowledge, encoded as installable agent plugins for Claude Code,
 ChatGPT, Codex, and GitHub Copilot.
 
-![plugins](https://img.shields.io/badge/plugins-4-00A8E1?labelColor=003767)
-![skills](https://img.shields.io/badge/skills-50-003767)
+![plugins](https://img.shields.io/badge/plugins-5-00A8E1?labelColor=003767)
+![skills](https://img.shields.io/badge/skills-52-003767)
 ![agents](https://img.shields.io/badge/agents-12-147EC2)
-![runtime](https://img.shields.io/badge/runtime-Bun_·_no_build_step-00817D)
+![build](https://img.shields.io/badge/build-none-00817D)
 ![gate](https://img.shields.io/badge/gate-verify--all.sh-58585B)
 
 </div>
@@ -102,19 +102,6 @@ copilot plugin install act-plugin-dev@actdata-plugins
 | **[`act-gitlab-ci`](plugins/act-gitlab-ci/)**<br>Engineering | GitLab CI/CD jobs, MCP, authentication, troubleshooting, and pipeline standards. | 10 skills · 1 agent · 3 commands · 1 MCP |
 | **[`code-reviews`](plugins/code-reviews/)**<br>Engineering | The code review methodology as a skill, plus installation into an existing harness: managed Code Review, GitHub Actions, GitLab CI, local hooks, or Copilot instructions. No runtime. | 2 skills · 10 references · 7 templates |
 
-### Not yet shipped
-
-These directories exist under `plugins/` but are **not** registered in `marketplace.json`, and are
-therefore not installable. That is deliberate — an unfinished plugin should not be discoverable.
-
-| Directory | State |
-|---|---|
-| `standards` | Empty shell. |
-| `git-workflows` | Empty shell. |
-
-`scripts/verify-all.sh` recognises a scaffold by its TODO markers and reports it as a draft rather
-than failing the build. Once a draft has real content, registering it becomes mandatory.
-
 ## Repository layout
 
 ```text
@@ -162,21 +149,19 @@ Load-bearing, not stylistic. `scripts/verify-all.sh` enforces the mechanical one
 | **Register, or it does not exist** | Every shipped plugin needs entries in the Claude, OpenAI, and Copilot marketplaces. |
 | **Version everywhere** | All host manifests and versioned marketplace entries must agree. The gate checks them. |
 | **`${CLAUDE_PLUGIN_ROOT}` stays literal** | Never an absolute path a tool happened to resolve. The gate greps for expanded forms. |
-| **Bun only** | `bun install`, `bun run`, `bunx`, `bun test`. `bun.lock` is the only lockfile; an npm/yarn/pnpm lockfile here is a bug. |
-| **No `/tmp`** | Scratch goes in the repository's gitignored `.tmp/`. |
+| **Prefer `.tmp/` over `/tmp`** | Scratch goes in the repository's gitignored `.tmp/` so generated work stays durable and inspectable. |
 | **No binaries** | No fonts, PDFs, Office documents, archives, or raster images over 50 KiB. SVG is exempt at any size. |
 | **2 MiB tracked-byte budget** | Measured with `git ls-files`, not `du`. |
-| **No emoji on ACT-authored surfaces** | READMEs, manifests, commands, agents. Use GFM alerts and tables. Vendored upstream reference content is exempt -- see [the divergence note](plugins/act-plugin-dev/README.md#upstream-and-divergence). |
 | **Conventional commits** | `<type>(<scope>): <summary>`, e.g. `feat(act-plugin-dev): add skill-reviewer agent`. |
 
 ## Scripts and validation
 
-The two validators are TypeScript importing only `node:*` builtins — no build step and no
-dependency on this repository's `package.json`. They run under Bun.
+The validators are TypeScript importing only `node:*` builtins — no build step and no
+dependency on this repository's `package.json`. They run with `node` (v24+).
 
 ```sh
-bun scripts/check-size.ts .
-bun scripts/check-no-binaries.ts .
+node scripts/check-size.ts .
+node scripts/check-no-binaries.ts .
 ```
 
 | Contract | Value |

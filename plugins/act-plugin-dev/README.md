@@ -39,7 +39,7 @@ A fork of Claude Code's `plugin-dev` toolkit, adapted for this marketplace. It c
 seven reference skills, four portable workflow skills, the same three review agents, and the same
 eight-phase creation command —
 with the generic advice replaced by what is actually true here: plugins live at `plugins/<name>/`,
-Bun is the runtime, skill names are kebab-case and must match their directory, and a plugin is not
+skill names are kebab-case and must match their directory, and a plugin is not
 finished until it is registered in `.claude-plugin/marketplace.json`.
 
 The point of the fork is that generic plugin advice produces plugins that fail this repository's
@@ -128,7 +128,6 @@ repository gate (`sh scripts/verify-all.sh`) checks every mechanical one.
 | `version` matches between `plugin.json` and the marketplace entry | Otherwise the advertised version is not the installed one. Bump both together. |
 | No `"skills": ["./"]` alongside a `skills/` directory | That field is the single-skill template shape and breaks auto-discovery. |
 | `${CLAUDE_PLUGIN_ROOT}` stays literal | A resolved absolute path written back into a tracked file breaks the plugin on every other machine. |
-| Bun, not npm | `bun`, `bunx`, `bun test`. `bun.lock` is the only lockfile. |
 | No binaries, 2 MiB tracked-byte budget | Enforced by `scripts/check-no-binaries.ts` and `scripts/check-size.ts`. |
 
 ## Upstream and divergence
@@ -145,10 +144,10 @@ list below is what makes re-syncing tractable — keep it accurate.
 | Change | Where | Why |
 |---|---|---|
 | Frontmatter `name` rewritten to kebab-case | all 7 `skills/*/SKILL.md` | Upstream ships Title Case (`name: Agent Development`) in kebab-case directories. The repository gate requires them identical. This is the only edit to 6 of the 7 SKILL.md files. |
-| `npm` / `npx` replaced with `bun` / `bunx` | 7 files across `command-development`, `hook-development`, `plugin-structure` | This marketplace is Bun-only. |
+| `npm` / `npx` replaced with `bun` / `bunx` | 7 files across `command-development`, `hook-development`, `plugin-structure` | Historical: an earlier marketplace policy. The marketplace no longer prescribes a package manager; either form is acceptable in examples. |
 | ACT marketplace section added | `skills/plugin-structure/SKILL.md` | Location, registration, skill naming, and the `"skills": ["./"]` trap, stated before the generic layout advice. |
 | Rewritten for this marketplace | `commands/create-plugin.md` | Conventions table; Phase 4 creates *and registers*; Phase 6 runs the repository gate; Phase 8 verifies registration consistency; emoji removed from quality standards. |
-| ACT convention checks added | `agents/plugin-validator.md` | Marketplace registration, version consistency, skill-name-equals-directory, npm references, expanded plugin roots, emoji, binaries. New report sections for each. |
+| ACT convention checks added | `agents/plugin-validator.md` | Marketplace registration, version consistency, skill-name-equals-directory, expanded plugin roots, binaries. New report sections for each. |
 | Name-equals-directory check added | `agents/skill-reviewer.md` | The failure mode this fork exists to prevent. |
 | `plugin.json` rewritten | `.claude-plugin/plugin.json` | ACT author, license, homepage, repository, keywords. |
 
@@ -161,13 +160,10 @@ list below is what makes re-syncing tractable — keep it accurate.
 
 ### Deliberately *not* changed
 
-**Emoji in vendored reference content.** This marketplace's no-emoji rule applies to ACT-authored
-surfaces — READMEs, `marketplace.json` descriptions, the command, and the agents. It is **not**
-applied to the vendored `skills/*/references/` and `skills/*/examples/` files, where the check and
-cross marks are semantic DO/DON'T markers and where the shell scripts use them as terminal status
-output. Stripping them across 30-plus files would multiply the diff against upstream for no brand
-benefit, since none of that content is a brand surface. The repository gate deliberately carries
-**no** emoji check for this reason; the rule lives in `CONTRIBUTING.md` and in `plugin-validator`.
+**Vendored reference content style.** The vendored `skills/*/references/` and `skills/*/examples/`
+files keep their upstream formatting — including check and cross marks used as semantic DO/DON'T
+markers and as terminal status output in shell scripts. Restyling them across 30-plus files would
+multiply the diff against upstream for no benefit.
 
 ## What this plugin does NOT do
 

@@ -59,19 +59,17 @@ Four component types, all discovered by convention rather than declared:
 
 | Tool | Why | Verify |
 |---|---|---|
-| **Bun** | The only runtime. Runs the validators and test suites. | `bun --version` |
+| **Node 24+** | Runs the validators and test suites (native TypeScript). | `node --version` |
 | **git** | 2.x | `git --version` |
 | **Claude Code CLI** | `claude plugin validate`, and installing what you build | `claude --version` |
 | **jq** | Used by one bundled plugin script | `jq --version` |
 | **trufflehog**, **trivy** | Pre-commit secret scanning. Optional; the hook skips gracefully. | `trufflehog --version` |
 | **socket** | Supply-chain scoring before adding any dependency | `socket --version` |
 
-There is no `.mise.toml` or `.tool-versions` in this repository, so tool installation is whatever your
-machine already uses.
-
-> [!CAUTION]
-> **Bun only.** Never `npm`, `yarn` or `pnpm`. `bun.lock` is the only permitted lockfile, and any
-> other lockfile appearing here is a bug to remove rather than a preference to tolerate.
+There is no toolchain manifest pinning versions in this repository; install tools however your
+machine already does. Use whatever package manager you prefer for the devDependencies —
+`package-lock.json` is the lockfile CI uses, and other managers' lockfiles are gitignored so they
+never land by accident.
 
 ### Setup
 
@@ -79,7 +77,7 @@ machine already uses.
 git clone <repository-url> actdata-plugins
 cd actdata-plugins
 
-bun install                       # devDependencies only; nothing here needs building
+npm install                       # devDependencies only; nothing here needs building
 git config core.hooksPath .githooks   # opt into the local pre-commit gate, once per clone
 ```
 
@@ -119,10 +117,10 @@ plugins/<name>/
   agents/*.md  commands/*.md  hooks/hooks.json
   scripts/                        # bundled executables, referenced via ${CLAUDE_PLUGIN_ROOT}
 scripts/verify-all.sh             # the gate. One script, every mechanical invariant.
-scripts/check-size.ts             # node:* builtins only, run by bun
+scripts/check-size.ts             # node:* builtins only, run with node
 scripts/check-no-binaries.ts
 docs/decisions/                   # ADRs
-.tmp/                             # gitignored scratch. Never /tmp. A workspace hook enforces this.
+.tmp/                             # gitignored scratch; preferred over /tmp so work stays inspectable
 ```
 
 ### The four plugins
@@ -138,13 +136,10 @@ docs/decisions/                   # ADRs
 
 1. This file.
 2. [`README.md`](../README.md) — what the marketplace is and the plugin catalog.
-6. [`docs/decisions/`](decisions/README.md) — the ADR index. Start with
+3. `plugins/act-plugin-dev/README.md` — then its skills as you need them.
+4. [`docs/decisions/`](decisions/README.md) — the ADR index. Start with
    [`0001-fork-plugin-dev.md`](decisions/0001-fork-plugin-dev.md) and the reason `act-plugin-dev` is
    a fork rather than a dependency.
-   everything: skills with references and examples, an agent, commands, a script, a test suite.
-5. `plugins/act-plugin-dev/README.md` — then its skills as you need them.
-6. [`docs/decisions/0001-fork-plugin-dev.md`](decisions/0001-fork-plugin-dev.md) — the one ADR, and
-   the reason `act-plugin-dev` is a fork rather than a dependency.
 
 ### Two design principles worth internalising early
 
@@ -154,8 +149,8 @@ reasoning; the references carry the lookup material.
 
 **Config-driven, not hardcoded.** The operational plugins ship **no** environment identifiers: no
 hostnames, addresses, database names or portal IDs, not even as defaults or fallbacks. Those come
-from a gitignored `.claude/<plugin-name>.local.md` the operator writes. With no settings file
-present, the commands ask rather than guess.
+from a gitignored `.agents/<plugin-name>.local.md` the operator writes (`.claude/` is the legacy
+fallback location). With no settings file present, the commands ask rather than guess.
 
 That constraint is deliberate. A command that defaults to a plausible-looking hostname is a command
 that will eventually run a diagnostic against the wrong machine and report confident findings about
@@ -324,7 +319,7 @@ scores.
 
 > [!NOTE]
 > Both validators in `scripts/` import only `node:*` builtins by design. Keeping them
-> dependency-free means the gate runs before `bun install` and cannot itself become a supply-chain
+> dependency-free means the gate runs before any package install and cannot itself become a supply-chain
 > surface. New validators should hold that line.
 
 ### Guards that will stop you
