@@ -72,9 +72,8 @@ if command -v bun >/dev/null 2>&1; then
   for f in $(find "$PLUGIN_DIR/skills" -name '*.yml' -o -name '*.yaml'); do
     name=$(basename "$f")
     if err=$(bun -e '
-      import { load } from "js-yaml";
       import { readFileSync } from "node:fs";
-      load(readFileSync(process.argv[1], "utf8"));
+      Bun.YAML.parse(readFileSync(process.argv[1], "utf8"));
     ' "$f" 2>&1); then
       pass "$name parses as YAML"
     else

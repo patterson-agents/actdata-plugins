@@ -57,9 +57,10 @@ The user creates one repository or organization secret — `ANTHROPIC_API_KEY`, 
 organization-wide rollout prefer an API key: an OAuth token is tied to whoever generated it.
 
 > [!CAUTION]
-> On public repositories GitHub withholds secrets from fork pull requests, so the review runs only
-> on same-repository branches. Do not work around this: the diff under review is untrusted input to
-> a model holding the job's environment.
+> On public repositories GitHub withholds secrets from fork pull requests, but the `pull_request`
+> event still fires for them — an unguarded job starts, receives an empty key, and fails red. The
+> template's `if:` guard on the job skips fork PRs instead. Do not work around this by exposing the
+> secret: the diff under review is untrusted input to a model holding the job's environment.
 
 ## Cost bounds
 

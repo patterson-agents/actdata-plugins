@@ -21,8 +21,9 @@ code-review:
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
       when: never
-    # For a first run, comment out the line below and keep only the web rule,
-    # so a person confirms credentials and permissions before this is automatic.
+    # For a first run, comment out the merge_request_event rule below and keep
+    # only the web rule, so a person confirms credentials and permissions
+    # before this is automatic.
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   variables:

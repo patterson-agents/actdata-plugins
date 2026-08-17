@@ -42,7 +42,10 @@ while read -r _local_ref local_sha _remote_ref remote_sha; do
   fi
   [ -n "$base" ] || continue
 
-  review "$base...$local_sha"
+  # Detach the engine from the hook's stdin: the while loop is still reading
+  # git's ref-update list from it, and an agent CLI drains piped stdin as
+  # extra prompt input, which would swallow the remaining refs.
+  review "$base...$local_sha" </dev/null
 done
 
 exit 0
