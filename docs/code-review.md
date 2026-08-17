@@ -83,8 +83,16 @@ mention of the review bot that the bot has not answered, and triggers a review f
 the pipeline trigger API, passing the comment along as `AI_FLOW_INPUT`.
 
 - **Latency is the schedule interval.** That is the honest cost of having nothing to operate.
+<<<<<<< HEAD
 - **A mention counts as answered** once the bot posts anything after it, so a sweep acts on a
   mention once and acts again on the next one.
+=======
+- **A mention is marked with an emoji award on the comment itself**, the moment a review is
+  triggered. "Has the bot replied since?" is the obvious test and the wrong one: a clean review
+  posts nothing by design, so the mention would stay unanswered and every sweep would pay for the
+  same review again. The award also reads as an acknowledgement in the UI rather than as another
+  comment.
+>>>>>>> fix/gitlab-review-glab
 - **The comment is quoted as a request**, not appended as instructions: anyone who can comment can
   write it, so it cannot override the posting rules or the tool scope.
 
@@ -133,8 +141,14 @@ merge request notes, which is why a project token exists at all.
 | `CLAUDE_MAX_BUDGET_USD` | **project** variable | hard ceiling per review; defaults to 5.00 |
 | `--max-turns`, `timeout` | job | bound a review that turns out harder than expected |
 
+<<<<<<< HEAD
 `CLAUDE_MAX_BUDGET_USD` is deliberately **not** declared in the job: a job-level variable outranks
 a project-level one, so declaring it would make the project setting inert.
+=======
+GitLab ranks a project variable above a job variable, so a project-level `CLAUDE_MAX_BUDGET_USD`
+wins whether or not the job declares one. The job leaves it undeclared anyway, so there is one
+obvious place to look for the value rather than two that disagree.
+>>>>>>> fix/gitlab-review-glab
 
 ## Operating it
 

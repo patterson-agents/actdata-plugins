@@ -11,13 +11,14 @@ way, described under [The reviewer never posts](#the-reviewer-never-posts).
 ## Install
 
 Copy `templates/gitlab-ci-review-job.yml` into `.gitlab-ci.yml`, matching the project's existing
-stage names rather than appending a foreign-looking block, plus its three companions:
+stage names rather than appending a foreign-looking block, plus its companions:
 
 | Template | Install to |
 |---|---|
 | `gitlab-code-review-prompt.md` | `.gitlab/code-review-prompt.md` |
 | `gitlab-code-review-schema.json` | `.gitlab/code-review-schema.json` |
 | `gitlab-post-review-findings.sh` | `.gitlab/post-review-findings.sh`, `chmod +x` |
+| `gitlab-mention-sweep.sh` | `.gitlab/mention-sweep.sh`, `chmod +x` (only with the mention sweep) |
 
 The job invokes the script by path, so a missing or non-executable copy fails at the moment a
 finding would have been posted. If the project uses `include:` for shared templates, ask whether
@@ -123,8 +124,8 @@ The credential reaches only `post-review-findings.sh`, never the model — see
 > interactive sessions and authenticates over OAuth, which is unusable in CI. They are not
 > interchangeable.
 
-The tool allowlist stays read-only plus scoped posting commands: a reviewer has no reason to hold
-`Edit`, `Write`, or a general `Bash`. A job that also implements changes is a different job.
+The tool allowlist is read-only: a reviewer has no reason to hold `Edit`, `Write`, a general
+`Bash`, or any posting command. A job that also implements changes is a different job.
 
 ## Triggering
 
@@ -167,7 +168,7 @@ Three ways to answer a mention, in increasing order of what they cost to run:
 | Approach | Latency | What it needs |
 |---|---|---|
 | A manual deep-pass job (`code-review:deep`) | Immediate, human-initiated | Nothing; it ships in this template |
-| A scheduled pipeline that sweeps open merge requests for unanswered mentions | The schedule interval | Nothing beyond CI |
+| A scheduled pipeline that sweeps open merge requests for unanswered mentions | The schedule interval | A trigger token, an `api`-scoped token, and a schedule setting `SWEEP_MENTIONS` |
 | A webhook listener calling the pipeline trigger API | Seconds | A service to host, secure, and monitor |
 
 ## Tokens

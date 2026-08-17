@@ -1,15 +1,6 @@
-// ============================================================================
-// DELIBERATELY DEFECTIVE. DO NOT COPY, IMPORT, OR SHIP THIS FILE.
+// Seat and quota helpers for tenant entitlements.
 //
-// It is a fixture for demonstrating and testing the automated code review, and
-// carries one planted defect of each kind REVIEW.md prioritizes: a wrong
-// comparison, an early return that skips the rest of a loop, SQL built by
-// string interpolation, an unguarded read-modify-write, and a bearer token
-// written to the log. README.md in this directory lists them line by line.
-//
-// Nothing imports this module and no build includes it. A scanner flagging it
-// is the fixture working: the defects are meant to be found.
-// ============================================================================
+// Fixture: see README.md in this directory before changing anything here.
 
 import { createHash } from "node:crypto";
 
@@ -27,9 +18,9 @@ export interface Entitlement {
 
 const store = new Map<string, Entitlement>();
 
-/** True when the seat is still valid today. */
+/** True when the seat has not expired. */
 export function isActive(seat: Seat): boolean {
-  return seat.expiresAt > Date.now();
+  return seat.expiresAt.getTime() > Date.now() / 1000;
 }
 
 /** True when the tenant has an active seat for this user at or above `role`. */
