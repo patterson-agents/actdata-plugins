@@ -83,4 +83,3 @@ non-executable copy fails at the moment a finding would have been posted:
 | `gitlab-code-review-prompt.md` | `.gitlab/code-review-prompt.md` |
 | `gitlab-code-review-schema.json` | `.gitlab/code-review-schema.json` |
 | `gitlab-post-review-findings.sh` | `.gitlab/post-review-findings.sh`, `chmod +x` |
-| `gitlab-mention-sweep.sh` | `.gitlab/mention-sweep.sh`, `chmod +x` (only with the mention sweep) |

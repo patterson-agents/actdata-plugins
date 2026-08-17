@@ -43,8 +43,8 @@ way it would judge a real change.
 The `code-review` job runs automatically. Expect threads anchored to the lines above, each naming
 the failure, with an Apply-able suggestion where the fix is one line.
 
-To show the mention path, comment `@act-code-review please take another look`. The scheduled sweep
-acknowledges the comment with an emoji and posts a fresh review within its interval.
+To show the deep pass, run the manual `code-review:deep` job from the merge request's pipeline
+widget. It reviews the same change at every severity rather than blocking findings only.
 
 ## What "good" looks like
 

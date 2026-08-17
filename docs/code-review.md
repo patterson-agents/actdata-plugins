@@ -9,7 +9,6 @@ plugin's own `install` skill has the per-surface installation detail.
 - [The one source of guidance](#the-one-source-of-guidance)
 - [What runs where](#what-runs-where)
 - [How a GitLab review works](#how-a-gitlab-review-works)
-- [Answering an @mention](#answering-an-mention)
 - [Keeping it quiet enough to leave on](#keeping-it-quiet-enough-to-leave-on)
 - [Security model](#security-model)
 - [Cost and latency](#cost-and-latency)
@@ -47,7 +46,6 @@ the known soft spot in the design.
 |---|---|---|
 | `code-review` (GitLab) | every non-draft merge request | inline threads on the diff |
 | `code-review:deep` (GitLab) | one manual click, in the merge request's pipeline | inline threads, every severity |
-| `mention-sweep` (GitLab) | schedule, every few minutes | triggers a review where a mention is unanswered |
 | `claude-code-review.yml` (GitHub) | every pull request | inline review comments |
 | Copilot | GitHub's own reviewer | its native review |
 
@@ -73,31 +71,6 @@ poster picks from the fields a finding carries:
 
 Where a fix is one line, the body ends with a `suggestion` block, which GitLab renders with an
 Apply button.
-
-## Answering an @mention
-
-GitLab runs no pipeline when someone comments, and Anthropic's GitLab integration is explicit that
-mention-driven triggering needs an event listener **you** host. This repository takes the option
-that needs no service: `mention-sweep` runs on a schedule, asks which open merge requests have a
-mention of the review bot that the bot has not answered, and triggers a review for each through
-the pipeline trigger API, passing the comment along as `AI_FLOW_INPUT`.
-
-- **Latency is the schedule interval.** That is the honest cost of having nothing to operate.
-<<<<<<< HEAD
-- **A mention counts as answered** once the bot posts anything after it, so a sweep acts on a
-  mention once and acts again on the next one.
-=======
-- **A mention is marked with an emoji award on the comment itself**, the moment a review is
-  triggered. "Has the bot replied since?" is the obvious test and the wrong one: a clean review
-  posts nothing by design, so the mention would stay unanswered and every sweep would pay for the
-  same review again. The award also reads as an acknowledgement in the UI rather than as another
-  comment.
->>>>>>> fix/gitlab-review-glab
-- **The comment is quoted as a request**, not appended as instructions: anyone who can comment can
-  write it, so it cannot override the posting rules or the tool scope.
-
-If seconds matter more than simplicity, the same job accepts `REVIEW_MR_IID` and `AI_FLOW_INPUT`
-from any trigger — point a webhook listener at it and nothing else changes.
 
 ## Keeping it quiet enough to leave on
 
@@ -145,14 +118,9 @@ merge request notes, which is why a project token exists at all.
 | `CLAUDE_MAX_BUDGET_USD` | **project** variable | hard ceiling per review; defaults to 5.00 |
 | `--max-turns`, `timeout` | job | bound a review that turns out harder than expected |
 
-<<<<<<< HEAD
-`CLAUDE_MAX_BUDGET_USD` is deliberately **not** declared in the job: a job-level variable outranks
-a project-level one, so declaring it would make the project setting inert.
-=======
 GitLab ranks a project variable above a job variable, so a project-level `CLAUDE_MAX_BUDGET_USD`
 wins whether or not the job declares one. The job leaves it undeclared anyway, so there is one
 obvious place to look for the value rather than two that disagree.
->>>>>>> fix/gitlab-review-glab
 
 ## Operating it
 
@@ -162,12 +130,7 @@ obvious place to look for the value rather than two that disagree.
 |---|---|---|
 | `ANTHROPIC_API_KEY` | yes | The Claude API key |
 | `GITLAB_ACCESS_TOKEN` | yes | Project access token, `api` scope. Without it the review runs and prints to the job log |
-| `REVIEW_TRIGGER_TOKEN` | yes | Pipeline trigger token, for the mention sweep |
 | `CLAUDE_MAX_BUDGET_USD` | no | Spend ceiling per review |
-
-**The pipeline schedule** that drives the sweep sets `SWEEP_MENTIONS` to `true`. Without that
-variable the sweep job does not run, so an ordinary scheduled pipeline cannot start reviews by
-accident.
 
 **Reading a failure.** The review job is `allow_failure: true`, because a probabilistic reviewer
 must never block a merge — which also means **a green pipeline is not evidence the review worked**.

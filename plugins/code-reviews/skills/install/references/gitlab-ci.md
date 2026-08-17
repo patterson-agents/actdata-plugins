@@ -18,7 +18,6 @@ stage names rather than appending a foreign-looking block, plus its companions:
 | `gitlab-code-review-prompt.md` | `.gitlab/code-review-prompt.md` |
 | `gitlab-code-review-schema.json` | `.gitlab/code-review-schema.json` |
 | `gitlab-post-review-findings.sh` | `.gitlab/post-review-findings.sh`, `chmod +x` |
-| `gitlab-mention-sweep.sh` | `.gitlab/mention-sweep.sh`, `chmod +x` (only with the mention sweep) |
 
 The job invokes the script by path, so a missing or non-executable copy fails at the moment a
 finding would have been posted. If the project uses `include:` for shared templates, ask whether
@@ -153,23 +152,25 @@ That is native and needs nothing else. Three refinements the template ships:
 > trigger API with `AI_FLOW_INPUT` and `AI_FLOW_CONTEXT` when a comment contains the mention.
 > Say so rather than leaving someone with a correct job that never fires.
 
-### Being ready for a listener before you have one
+### Answering a mention
 
-The job reads `AI_FLOW_INPUT` when it is set, so a listener can be added later without touching
-the pipeline. Until one exists the variable is unset and the block is inert.
-
-Quote that text as a request rather than appending it to the instructions. It is written by anyone
-who can comment on the project, so treating it as instructions hands the reviewer's tools to a
-commenter — which is why the reviewer holds no posting command at all, and the pipeline posts on
-its behalf after it exits.
-
-Three ways to answer a mention, in increasing order of what they cost to run:
+This template ships no mention path. Two ways to add one:
 
 | Approach | Latency | What it needs |
 |---|---|---|
 | A manual deep-pass job (`code-review:deep`) | Immediate, human-initiated | Nothing; it ships in this template |
-| A scheduled pipeline that sweeps open merge requests for unanswered mentions | The schedule interval | A trigger token, an `api`-scoped token, and a schedule setting `SWEEP_MENTIONS` |
 | A webhook listener calling the pipeline trigger API | Seconds | A service to host, secure, and monitor |
+
+A scheduled pipeline that polls open merge requests for unanswered mentions looks like a way to
+avoid hosting anything, and is a poor trade: latency is the schedule interval, it needs a standing
+trigger token, and it spends on every sweep whether or not anyone asked for a review.
+
+A listener also has to reach the prompt. The job builds its prompt from the diff alone, so passing
+a comment through — as `AI_FLOW_INPUT`, per the upstream integration — means adding that to the
+job as well. Quote that text as a request rather than appending it to the instructions: it is
+written by anyone who can comment on the project, so treating it as instructions hands the
+reviewer's tools to a commenter, which is why the reviewer holds no posting command at all and the
+pipeline posts on its behalf after it exits.
 
 ## Tokens
 
