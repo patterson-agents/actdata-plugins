@@ -71,5 +71,15 @@ guidance problem, and `REVIEW.md` is where it gets fixed.
 References: `github-managed.md`, `github-actions.md`, `gitlab-ci.md`, `local.md`,
 `copilot-native.md`, `non-claude-engines.md`.
 
-Templates: `claude-code-review.yml`, `gitlab-ci-review-job.yml`, `pre-push`,
-`code-review.instructions.md`, `review-agent.yaml`.
+Templates: `claude-code-review.yml`, `pre-push`, `code-review.instructions.md`,
+`review-agent.yaml`.
+
+GitLab installs as a set, and the job invokes the scripts by path — a missing or
+non-executable copy fails at the moment a finding would have been posted:
+
+| Template | Install to |
+|---|---|
+| `gitlab-ci-review-job.yml` | `.gitlab-ci.yml` |
+| `gitlab-code-review-prompt.md` | `.gitlab/code-review-prompt.md` |
+| `gitlab-code-review-schema.json` | `.gitlab/code-review-schema.json` |
+| `gitlab-post-review-findings.sh` | `.gitlab/post-review-findings.sh`, `chmod +x` |

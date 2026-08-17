@@ -102,8 +102,11 @@ for skill_md in "$PLUGIN_DIR"/skills/*/SKILL.md; do
 done
 
 # --- shell templates are valid POSIX sh --------------------------------------
+# Every shell template, discovered rather than listed: a hardcoded list checked
+# `pre-push` alone while two newer scripts shipped unchecked.
 
-for f in "$PLUGIN_DIR"/skills/install/templates/pre-push; do
+for f in "$PLUGIN_DIR"/skills/install/templates/pre-push \
+         "$PLUGIN_DIR"/skills/install/templates/*.sh; do
   [ -f "$f" ] || continue
   if sh -n "$f" 2>/dev/null; then
     pass "$(basename "$f") is valid sh"
@@ -111,6 +114,22 @@ for f in "$PLUGIN_DIR"/skills/install/templates/pre-push; do
     fail "$(basename "$f") is valid sh"
   fi
 done
+
+# --- every shipped template is referenced by the install skill ----------------
+# The reverse of the reference check above. A template nobody is told to install
+# is a job that breaks the first time it runs.
+
+install_skill="$PLUGIN_DIR/skills/install/SKILL.md"
+if [ -f "$install_skill" ]; then
+  for f in "$PLUGIN_DIR"/skills/install/templates/*; do
+    name=$(basename "$f")
+    if grep -q -- "$name" "$install_skill"; then
+      pass "install skill mentions $name"
+    else
+      fail "install skill mentions $name" "shipped but never referenced"
+    fi
+  done
+fi
 
 echo "  $passed passed, $failed failed"
 [ "$failed" -eq 0 ] || exit 1

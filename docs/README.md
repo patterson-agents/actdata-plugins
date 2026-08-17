@@ -22,6 +22,7 @@ Codex, and GitHub Copilot.
 | **About to make a change** | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — the rules, stated as rules |
 | **Trying to understand how it works** | [`architecture.md`](architecture.md) |
 | **Stuck on an error** | [`troubleshooting.md`](troubleshooting.md) |
+| **Working on the automated review** | [`code-review.md`](code-review.md) |
 
 ## The documents
 
@@ -30,6 +31,7 @@ Codex, and GitHub Copilot.
 | [`onboarding.md`](onboarding.md) | How do I get set up, what do I read, and what should I work on first? |
 | [`architecture.md`](architecture.md) | How does a marketplace work? What discovers what, and when? |
 | [`verification.md`](verification.md) | What exactly does the gate check, and what does nothing check? |
+| [`code-review.md`](code-review.md) | How does the automated review work, on every surface, and how do I operate it? |
 | [`troubleshooting.md`](troubleshooting.md) | Something broke. What is it and how do I fix it? |
 | [`releasing.md`](releasing.md) | How do versions work here, and what is still undecided? |
 | [`glossary.md`](glossary.md) | What does this repository mean by that word? |
@@ -45,6 +47,7 @@ onboarding.md        orientation      "where am I, what do I do first"
         |
 architecture.md      explanation      "how the machinery works"
 verification.md      reference        "what is enforced, precisely"
+code-review.md       reference        "how the automated review works"
         |
 CONTRIBUTING.md      rules            "what you must do"
         |

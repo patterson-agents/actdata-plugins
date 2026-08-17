@@ -1,24 +1,227 @@
 # Automated code review on every merge request.
 #
-# Add to .gitlab-ci.yml, adapting `stage:` to the project's existing stages.
+# Add to .gitlab-ci.yml, adapting `stage:` to the project's existing stages, and
+# install the three companion files:
+#   .gitlab/code-review-prompt.md     from templates/gitlab-code-review-prompt.md
+#   .gitlab/code-review-schema.json   from templates/gitlab-code-review-schema.json
+#   .gitlab/post-review-findings.sh   from templates/gitlab-post-review-findings.sh
+#                                     (chmod +x)
 #
-# CI/CD variables to create under Settings > CI/CD > Variables, both masked:
-#   ANTHROPIC_API_KEY     the Claude API key (required)
-#   GITLAB_ACCESS_TOKEN   project access token with the api scope (optional).
-#                         With it, findings post to the merge request via glab;
-#                         without it, the review prints to the job log only,
-#                         because CI_JOB_TOKEN cannot create merge request notes.
+# The reviewer runs read-only and returns findings as data against the schema;
+# this pipeline posts them. It holds no credential, no write tool, and no
+# posting command, so the merge request diff -- written by whoever opened it --
+# cannot reach the project API, and cannot rewrite what posts on its behalf.
+#
+# The prompt and schema are separate files so what the reviewer is asked for
+# stays reviewable and tunable in merge requests of its own.
+#
+# glab is pinned by version and verified against the SHA-256 published in the
+# release's checksums.txt. Socket has no entry for it (`notFound`), so there is
+# no supply-chain score to record; the pin and the checksum are the control.
+#
+# CI/CD variables to create under Settings > CI/CD > Variables:
+#   ANTHROPIC_API_KEY       the Claude API key (required, masked)
+#   GITLAB_ACCESS_TOKEN     project access token with the api scope (optional,
+#                           masked). Without it the review prints to the job log
+#                           only, because CI_JOB_TOKEN cannot create MR notes.
+#   CLAUDE_MAX_BUDGET_USD   spend ceiling for one review (optional, not masked).
+#                           Defaults to 5.00 when unset. Set it per project to
+#                           change the cap without editing this file; a
+#                           job-level variable would outrank it, which is why
+#                           this template does not declare one.
 # For Amazon Bedrock or Google Cloud instead, see gitlab-ci.md.
 #
-# Do not expose these variables to pipelines from forks.
+# Do not expose the two masked variables to pipelines from forks.
 #
 # Duo-enabled runner images ship /bin/gitlab-mcp-server and can use the
 # mcp__gitlab tools instead of glab; standard Docker runners do not have that
 # binary, which is why this template posts through glab.
 
-code-review:
+.code-review-base:
   stage: test
   image: node:24-alpine3.21
+  variables:
+    GIT_DEPTH: "0"
+    # blocking: post only what blocks the merge. all: every severity.
+    REVIEW_DEPTH: "blocking"
+    GLAB_VERSION: "1.113.0"
+    GLAB_SHA256_AMD64: "c265589fb2018f310b6a27df9356efee42991f858e7e3a5fa232228a13b47467"
+    GLAB_SHA256_ARM64: "0c4cab3b35f7641e7955492b9491d7070698a958f0dfcb49d989e71bd78793c2"
+    # glab reads its token from the environment: it accepts GITLAB_TOKEN,
+    # GITLAB_ACCESS_TOKEN, or OAUTH_TOKEN, and says so itself when one is set
+    # ("WARNING: One of GITLAB_TOKEN, GITLAB_ACCESS_TOKEN, OAUTH_TOKEN
+    # environment variables is set"). No auth login step is needed. A
+    # self-managed instance also needs the host.
+    GITLAB_HOST: "$CI_SERVER_HOST"
+    # Review cost and latency knobs. Opus is the strongest reviewer and the
+    # reason the spend ceiling is set where it is; claude-sonnet-5 reviews a
+    # typical merge request faster and cheaper if that trade suits the project.
+    CLAUDE_MODEL: "claude-opus-5"
+    CLAUDE_EFFORT: "medium"
+    # CLAUDE_MAX_BUDGET_USD is deliberately not set here. GitLab ranks a project
+    # variable above a job variable, so a project setting would win either way -
+    # but leaving it undeclared keeps one obvious place to look for the value.
+    # The script applies the default below when the project sets nothing.
+  before_script:
+    - apk add --no-cache git bash curl jq
+    - mkdir -p .tmp
+    # Alpine's packaged glab lags far behind releases; install a pinned,
+    # checksum-verified build from the official release, matching the runner's
+    # architecture rather than assuming amd64.
+    - |
+      case "$(uname -m)" in
+        x86_64)  GLAB_ARCH=amd64; GLAB_SHA256="$GLAB_SHA256_AMD64" ;;
+        aarch64) GLAB_ARCH=arm64; GLAB_SHA256="$GLAB_SHA256_ARM64" ;;
+        *) echo "unsupported runner architecture: $(uname -m)" >&2; exit 1 ;;
+      esac
+      curl -fsSL -o .tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${GLAB_ARCH}.tar.gz"
+      echo "${GLAB_SHA256}  .tmp/glab.tar.gz" | sha256sum -c -
+      tar -xzf .tmp/glab.tar.gz -C /usr/local bin/glab
+    # The npm registry install carries integrity metadata, unlike a piped script.
+    - npm install -g @anthropic-ai/claude-code
+  script:
+    - |
+      # Both review jobs run only in merge request pipelines, where these are
+      # set. A pipeline started any other way has no merge request to review.
+      if [ -z "${CI_MERGE_REQUEST_IID:-}" ]; then
+        echo "no merge request in scope; nothing to review."
+        exit 0
+      fi
+
+      SOURCE_BRANCH="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+      TARGET_BRANCH="$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+
+      # Branch names reach the model's prompt; reject anything outside a
+      # conservative character set rather than forwarding attacker-shaped input.
+      case "$SOURCE_BRANCH$TARGET_BRANCH" in
+        *[!A-Za-z0-9._/-]*) echo "branch name outside [A-Za-z0-9._/-]; refusing to review"; exit 1 ;;
+      esac
+
+      if [ "$REVIEW_DEPTH" = "all" ]; then
+        POSTING_MODE="thorough - post findings at any severity"
+      else
+        POSTING_MODE="blocking-only"
+      fi
+
+      # The reviewer needs the diff range whether or not it can post, so derive
+      # it from the predefined merge request variables and prefer the API's
+      # copy when a token makes that available: those values are what the
+      # discussion positions are validated against.
+      DIFF_REFS=$(jq -nc --arg base "$CI_MERGE_REQUEST_DIFF_BASE_SHA" \
+                        --arg head "${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}" \
+                        '{base_sha: $base, head_sha: $head, start_sha: $base}')
+      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+        FROM_API=$(glab api "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID" | jq -c '.diff_refs // empty')
+        [ -n "$FROM_API" ] && DIFF_REFS="$FROM_API"
+      else
+        CAN_POST=""
+        POSTING_MODE="$POSTING_MODE (no posting credentials in this job; findings go to the job log)"
+      fi
+
+      # Precompute the diff rather than letting the reviewer run git. `git diff`
+      # and `git log` both accept --output=<file>, so granting either as a
+      # "read-only" command in fact grants arbitrary file writes -- enough to
+      # overwrite the posting script that runs after the reviewer exits, with
+      # the token in its environment. The reviewer therefore gets no shell at
+      # all, and reads the change from a file.
+      #
+      # The diff comes from the API, not the clone. A merge request pipeline
+      # checks out the merge request ref alone, so the commits a local
+      # `git diff base...head` needs are not reliably present -- and when they
+      # are not, git writes an empty file and the reviewer silently reviews
+      # nothing. The API's diff is also the one the discussion positions are
+      # validated against, so it is the correct input in any case.
+      : > .tmp/diff.patch
+      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+        glab api --paginate "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/diffs?per_page=100" \
+          | jq -s 'add // []' \
+          | jq -r '.[] | "diff --git a/\(.old_path) b/\(.new_path)\n--- \(if .new_file then "/dev/null" else "a/" + .old_path end)\n+++ \(if .deleted_file then "/dev/null" else "b/" + .new_path end)\n\(.diff)"' \
+          > .tmp/diff.patch
+      else
+        # No token: fall back to the clone, which is best-effort by nature.
+        BASE_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.base_sha')
+        HEAD_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.head_sha')
+        git fetch --no-tags -q origin "+refs/heads/${TARGET_BRANCH}:refs/remotes/origin/${TARGET_BRANCH}" 2>/dev/null || true
+        git diff "origin/${TARGET_BRANCH}...HEAD" > .tmp/diff.patch 2>/dev/null \
+          || git diff "${BASE_SHA}...${HEAD_SHA}" > .tmp/diff.patch 2>/dev/null \
+          || : > .tmp/diff.patch
+      fi
+      echo "review: diff is $(wc -l < .tmp/diff.patch) lines."
+
+      # An empty diff means the diff could not be read, not that the change is
+      # empty: GitLab does not run this pipeline without one. Fail rather than
+      # ask the model to review nothing and report the resulting silence as a
+      # clean review. The job is allow_failure, so this reports without blocking.
+      if [ ! -s .tmp/diff.patch ]; then
+        echo "review: could not read the merge request diff; refusing to review nothing." >&2
+        exit 1
+      fi
+
+      {
+        echo "Merge request: !$CI_MERGE_REQUEST_IID ($SOURCE_BRANCH into $TARGET_BRANCH)"
+        echo "Project id: $CI_PROJECT_ID"
+        echo "Diff refs: $DIFF_REFS"
+        echo "Posting mode: $POSTING_MODE"
+        echo
+        cat .gitlab/code-review-prompt.md
+      } > .tmp/review-prompt.md
+
+      # The reviewer runs read-only and returns findings as data; the pipeline
+      # posts them. It holds no credential, no writes, and no posting command,
+      # so the untrusted diff it reads cannot reach the project's API -- and
+      # cannot rewrite the thing that does the posting either.
+      # Unset every variable glab accepts as a token, not just the one this job
+      # sets: a group-level GITLAB_TOKEN or OAUTH_TOKEN would otherwise reach
+      # the reviewer, where an allowed command could expand it into output.
+      #
+      # --safe-mode disables every customization loaded from the working tree --
+      # hooks, skills, plugins, MCP servers, custom commands and agents. That
+      # tree is the merge request's: a hook declared in .claude/settings.json
+      # would otherwise run inside this job, which holds the tokens the reviewer
+      # is deliberately denied. Built-in tools and permissions are unaffected,
+      # and the reviewer's guidance is read explicitly from REVIEW.md rather
+      # than discovered.
+      env -u GITLAB_ACCESS_TOKEN -u GITLAB_TOKEN -u OAUTH_TOKEN \
+      claude \
+        -p "$(cat .tmp/review-prompt.md)" \
+        --safe-mode \
+        --model "$CLAUDE_MODEL" \
+        --effort "$CLAUDE_EFFORT" \
+        --max-budget-usd "${CLAUDE_MAX_BUDGET_USD:-5.00}" \
+        --allowedTools "Read Grep Glob" \
+        --output-format json \
+        --json-schema "$(cat .gitlab/code-review-schema.json)" \
+        --max-turns 30 \
+        > .tmp/claude-out.json
+
+      # --output-format json wraps the answer in an envelope that is sometimes a
+      # single object and sometimes an array of messages. The schema-validated
+      # answer is `structured_output`; `result` is the free-form text, which
+      # happens to hold the same JSON but only by convention.
+      jq '(if type == "array" then .[-1] else . end)
+          | (.structured_output // .result)
+          | if type == "string" then fromjson else . end' \
+        .tmp/claude-out.json > .tmp/findings.json
+
+      if [ -z "${CAN_POST-yes}" ]; then
+        echo "no posting credentials in this job; findings follow."
+        jq -r ".findings[] | \"--- \\(.path)\\(if .line then \":\\(.line)\" else \"\" end) ---\\n\\(.body)\\n\"" .tmp/findings.json
+        exit 0
+      fi
+
+      printf '%s' "$DIFF_REFS" > .tmp/diff-refs.json
+      .gitlab/post-review-findings.sh .tmp/findings.json .tmp/diff-refs.json
+  # Bounds a task that turns out harder than expected.
+  timeout: 20m
+  # A probabilistic reviewer must never block a merge.
+  allow_failure: true
+  # A new push supersedes an in-flight review.
+  interruptible: true
+
+# The automatic pass on every merge request. Quiet by design: only findings that
+# block the merge are posted, so the review stays something people leave on.
+code-review:
+  extends: .code-review-base
   rules:
     # Draft merge requests are not reviewed. CI_MERGE_REQUEST_DRAFT needs
     # GitLab 17.10+; the title check covers older instances.
@@ -26,38 +229,16 @@ code-review:
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TITLE =~ /^Draft:/'
       when: never
-    # For a first run, comment out the merge_request_event rule below and keep
-    # only the web rule, so a person confirms credentials and permissions
-    # before this is automatic.
-    - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+# The deep pass, one click from the merge request's pipeline widget when a
+# change warrants it. Reports at every severity.
+code-review:deep:
+  extends: .code-review-base
   variables:
-    GIT_DEPTH: "0"
-  before_script:
-    - apk add --no-cache git bash glab
-    # The npm registry install carries integrity metadata, unlike a piped script.
-    - npm install -g @anthropic-ai/claude-code
-  script:
-    - |
-      # Branch names reach the model's prompt; reject anything outside a
-      # conservative character set rather than forwarding attacker-shaped input.
-      case "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" in
-        *[!A-Za-z0-9._/-]*) echo "branch name outside [A-Za-z0-9._/-]; refusing to review"; exit 1 ;;
-      esac
-      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
-        glab auth login --hostname "$CI_SERVER_HOST" --token "$GITLAB_ACCESS_TOKEN"
-        POSTING="Post each finding on merge request !$CI_MERGE_REQUEST_IID with 'glab mr note create $CI_MERGE_REQUEST_IID --message ...', one note per unique issue, then a summary note."
-      else
-        POSTING="No posting credentials are available in this job, so print the full review to stdout and state clearly that nothing was posted."
-      fi
-      claude \
-        -p "Review merge request !$CI_MERGE_REQUEST_IID (branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME against $CI_MERGE_REQUEST_TARGET_BRANCH_NAME) following the guidance in REVIEW.md and ACT_CODE_REVIEW.md, including any file they reference with @. Diff the merge request with git. Report only findings that name a concrete failure scenario and cite path:line. $POSTING Modify no files." \
-        --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*) Bash(git fetch:*) Bash(glab mr note:*) Bash(glab mr view:*) Bash(glab mr diff:*)" \
-        --max-turns 25
-  # Bounds a task that turns out harder than expected. Neither has a useful
-  # default for an unattended job.
-  timeout: 20m
-  # A probabilistic reviewer must never block a merge.
-  allow_failure: true
-  # A new push supersedes an in-flight review.
-  interruptible: true
+    REVIEW_DEPTH: "all"
+    CLAUDE_EFFORT: "high"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true

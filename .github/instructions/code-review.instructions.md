@@ -78,7 +78,7 @@ This repository is a plugin marketplace; the install experience is the product. 
   only, with no undeclared dependencies.
 
 Do not report vendored upstream reference content under `plugins/*/skills/*/references/` and
-`examples/`, generated `*.lock.yml` workflows, or anything `scripts/verify-all.sh` already
+`plugins/*/skills/*/examples/`, generated `*.lock.yml` workflows, or anything `scripts/verify-all.sh` already
 enforces mechanically.
 
 ## Organization conventions

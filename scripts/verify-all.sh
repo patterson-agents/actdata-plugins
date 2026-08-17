@@ -252,6 +252,40 @@ else
   fail "no expanded \${CLAUDE_PLUGIN_ROOT}"
 fi
 
+# ---------------------------------------------------------------------------
+# 8. This repository's own GitLab review files match the templates the plugin
+#    ships. They are the same files, installed here and vendored there, so a fix
+#    applied to one copy and not the other ships broken to whoever installs it.
+#    Parity held by hand until it did not; this is the check that keeps it.
+# ---------------------------------------------------------------------------
+GITLAB_TPL="$ROOT/plugins/code-reviews/skills/install/templates"
+parity_bad=0
+parity_seen=0
+for pair in \
+  "code-review-prompt.md:gitlab-code-review-prompt.md" \
+  "code-review-schema.json:gitlab-code-review-schema.json" \
+  "post-review-findings.sh:gitlab-post-review-findings.sh"
+do
+  live="$ROOT/.gitlab/${pair%%:*}"
+  tpl="$GITLAB_TPL/${pair##*:}"
+  [ -f "$live" ] || continue
+  parity_seen=$((parity_seen + 1))
+  if [ ! -f "$tpl" ]; then
+    echo "  missing template: ${pair##*:}"
+    parity_bad=$((parity_bad + 1))
+  elif ! diff -q "$live" "$tpl" >/dev/null 2>&1; then
+    echo "  drifted: .gitlab/${pair%%:*} differs from templates/${pair##*:}"
+    parity_bad=$((parity_bad + 1))
+  fi
+done
+if [ "$parity_seen" -eq 0 ]; then
+  pass "gitlab review files match their templates (none installed here)"
+elif [ "$parity_bad" -eq 0 ]; then
+  pass "gitlab review files match their templates ($parity_seen file(s))"
+else
+  fail "gitlab review files match their templates ($parity_bad drifted)"
+fi
+
 echo "================================"
 if [ "$overall" -eq 0 ]; then
   echo "VERIFY-ALL: PASS"
