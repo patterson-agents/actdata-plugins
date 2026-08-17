@@ -23,13 +23,22 @@
           "start_line": {
             "type": "integer",
             "description": "First line of a span, when the finding covers several lines the diff adds. Requires line to be set as the last line of the span."
+          },
+          "old_path": {
+            "type": "string",
+            "description": "The pre-rename path, set only when the change renames the file. Defaults to path."
           }
         },
-        "required": ["path", "body"],
+        "required": [
+          "path",
+          "body"
+        ],
         "additionalProperties": false
       }
     }
   },
-  "required": ["findings"],
+  "required": [
+    "findings"
+  ],
   "additionalProperties": false
 }

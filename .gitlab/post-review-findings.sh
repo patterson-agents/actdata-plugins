@@ -40,6 +40,19 @@ while [ "$i" -lt "$count" ]; do
   path=$(printf '%s' "$finding" | jq -r '.path')
   line=$(printf '%s' "$finding" | jq -r '.line // empty')
   start=$(printf '%s' "$finding" | jq -r '.start_line // empty')
+  old_path=$(printf '%s' "$finding" | jq -r '.old_path // .path')
+
+  # GitLab executes quick actions -- /close, /merge, /assign -- when a note
+  # body has one on a line of its own, under this token's permissions. The body
+  # is the one field the model controls, and the model reads an untrusted diff,
+  # so a body that looks like a command is refused rather than posted. A review
+  # comment has no reason to contain one.
+  if printf '%s' "$finding" | jq -r '.body' | grep -qE '^[[:space:]]*/[a-zA-Z_]+'; then
+    failed=$((failed + 1))
+    echo "review: refusing a finding on ${path}: body contains a GitLab quick action" >&2
+    printf '%s' "$finding" | jq -r '"  --- finding ---\n" + .body' >&2
+    continue
+  fi
 
   # line_code is the SHA-1 of the file path, then the old and new line numbers,
   # with 0 for a side the line does not exist on.
@@ -48,17 +61,17 @@ while [ "$i" -lt "$count" ]; do
   if [ -z "$line" ]; then
     # No line: anchor the thread to the file itself.
     printf '%s' "$finding" | jq \
-      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" \
+      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" --arg old "$old_path" \
       '{body: .body,
-        position: ($refs[0] + {position_type: "file", old_path: $path, new_path: $path})}' \
+        position: ($refs[0] + {position_type: "file", old_path: $old, new_path: $path})}' \
       > "$WORK/payload.json"
   elif [ -n "$start" ] && [ "$start" != "$line" ]; then
     # A span. Both ends must be lines the diff adds; see the reviewer prompt.
     printf '%s' "$finding" | jq \
-      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" --arg code "$code" \
+      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" --arg old "$old_path" --arg code "$code" \
       --argjson first "$start" --argjson last "$line" \
       '{body: .body,
-        position: ($refs[0] + {position_type: "text", old_path: $path, new_path: $path,
+        position: ($refs[0] + {position_type: "text", old_path: $old, new_path: $path,
           new_line: $last,
           line_range: {
             start: {line_code: "\($code)_0_\($first)", type: "new", old_line: null, new_line: $first},
@@ -66,9 +79,9 @@ while [ "$i" -lt "$count" ]; do
       > "$WORK/payload.json"
   else
     printf '%s' "$finding" | jq \
-      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" --argjson line "$line" \
+      --slurpfile refs "$DIFF_REFS_FILE" --arg path "$path" --arg old "$old_path" --argjson line "$line" \
       '{body: .body,
-        position: ($refs[0] + {position_type: "text", old_path: $path, new_path: $path,
+        position: ($refs[0] + {position_type: "text", old_path: $old, new_path: $path,
                                new_line: $line})}' \
       > "$WORK/payload.json"
   fi

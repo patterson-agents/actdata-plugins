@@ -138,6 +138,9 @@
       # posts them. It holds no credential, no writes, and no posting command,
       # so the untrusted diff it reads cannot reach the project's API -- and
       # cannot rewrite the thing that does the posting either.
+      # env -u keeps the posting credential out of the reviewer's process, so
+      # the boundary holds even if a future tool grant is wider than intended.
+      env -u GITLAB_ACCESS_TOKEN \
       claude \
         -p "$(cat .tmp/review-prompt.md)" \
         --model "$CLAUDE_MODEL" \
@@ -149,9 +152,13 @@
         --max-turns 30 \
         > .tmp/claude-out.json
 
-      # --output-format json wraps the answer in a result envelope, and the
-      # structured result may arrive as an object or as a JSON string.
-      jq '(.result // .) | if type == "string" then fromjson else . end' \
+      # --output-format json wraps the answer in an envelope that is sometimes a
+      # single object and sometimes an array of messages. The schema-validated
+      # answer is `structured_output`; `result` is the free-form text, which
+      # happens to hold the same JSON but only by convention.
+      jq '(if type == "array" then .[-1] else . end)
+          | (.structured_output // .result)
+          | if type == "string" then fromjson else . end' \
         .tmp/claude-out.json > .tmp/findings.json
 
       if [ -z "${CAN_POST-yes}" ]; then

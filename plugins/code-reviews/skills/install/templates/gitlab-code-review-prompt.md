@@ -31,6 +31,11 @@ A `findings` array. Each entry:
 | `body` | yes | The comment, in GitLab-flavored Markdown |
 | `line` | no | Line in the **new** file the thread anchors to |
 | `start_line` | no | First line of a span, when the finding covers several lines |
+| `old_path` | no | The pre-rename path, **only** when the change renames the file |
+
+Do not begin any line of `body` with `/`. GitLab reads such a line as a quick action and executes
+it — a review comment that opens with `/close` closes the merge request. The pipeline refuses a
+body shaped that way, so the finding is lost rather than posted.
 
 Anchoring, in order of preference:
 
