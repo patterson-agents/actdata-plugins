@@ -124,15 +124,38 @@
       # overwrite the posting script that runs after the reviewer exits, with
       # the token in its environment. The reviewer therefore gets no shell at
       # all, and reads the change from a file.
-      BASE_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.base_sha')
-      HEAD_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.head_sha')
-      if ! git diff "${BASE_SHA}...${HEAD_SHA}" > .tmp/diff.patch 2>/dev/null; then
+      #
+      # The diff comes from the API, not the clone. A merge request pipeline
+      # checks out the merge request ref alone, so the commits a local
+      # `git diff base...head` needs are not reliably present -- and when they
+      # are not, git writes an empty file and the reviewer silently reviews
+      # nothing. The API's diff is also the one the discussion positions are
+      # validated against, so it is the correct input in any case.
+      : > .tmp/diff.patch
+      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+        glab api --paginate "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/diffs?per_page=100" \
+          | jq -s 'add // []' \
+          | jq -r '.[] | "diff --git a/\(.old_path) b/\(.new_path)\n--- \(if .new_file then "/dev/null" else "a/" + .old_path end)\n+++ \(if .deleted_file then "/dev/null" else "b/" + .new_path end)\n\(.diff)"' \
+          > .tmp/diff.patch
+      else
+        # No token: fall back to the clone, which is best-effort by nature.
+        BASE_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.base_sha')
+        HEAD_SHA=$(printf '%s' "$DIFF_REFS" | jq -r '.head_sha')
         git fetch --no-tags -q origin "+refs/heads/${TARGET_BRANCH}:refs/remotes/origin/${TARGET_BRANCH}" 2>/dev/null || true
         git diff "origin/${TARGET_BRANCH}...HEAD" > .tmp/diff.patch 2>/dev/null \
-          || git diff HEAD~1 > .tmp/diff.patch 2>/dev/null \
+          || git diff "${BASE_SHA}...${HEAD_SHA}" > .tmp/diff.patch 2>/dev/null \
           || : > .tmp/diff.patch
       fi
       echo "review: diff is $(wc -l < .tmp/diff.patch) lines."
+
+      # An empty diff means the diff could not be read, not that the change is
+      # empty: GitLab does not run this pipeline without one. Fail rather than
+      # ask the model to review nothing and report the resulting silence as a
+      # clean review. The job is allow_failure, so this reports without blocking.
+      if [ ! -s .tmp/diff.patch ]; then
+        echo "review: could not read the merge request diff; refusing to review nothing." >&2
+        exit 1
+      fi
 
       {
         echo "Merge request: !$CI_MERGE_REQUEST_IID ($SOURCE_BRANCH into $TARGET_BRANCH)"

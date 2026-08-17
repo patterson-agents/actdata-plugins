@@ -60,6 +60,12 @@ merge request  ─▶  code-review job
 
 The reviewer and the poster are separate on purpose — see [Security model](#security-model).
 
+The diff comes from the API rather than from the checkout. A merge request pipeline clones the
+merge request ref alone, so a local `git diff base...head` cannot count on having both commits; when
+it does not, git writes an empty file and the reviewer reviews nothing while the job stays green.
+The job reads the same diff GitLab validates thread positions against, and **fails when that diff
+comes back empty** rather than reporting the resulting silence as a clean review.
+
 Each finding becomes a thread anchored where the problem is. GitLab accepts three anchors and the
 poster picks from the fields a finding carries:
 
