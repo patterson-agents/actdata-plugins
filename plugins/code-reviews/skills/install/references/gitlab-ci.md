@@ -11,12 +11,56 @@ that posts comments — the job's Claude Code process posts them itself through 
 ## Install
 
 Copy `templates/gitlab-ci-review-job.yml` into `.gitlab-ci.yml`, matching the project's existing
-stage names rather than appending a foreign-looking block. If the project uses `include:` for
-shared templates, ask whether the job belongs in the template project instead.
+stage names rather than appending a foreign-looking block, and copy
+`templates/gitlab-code-review-prompt.md` to `.gitlab/code-review-prompt.md`. If the project uses
+`include:` for shared templates, ask whether the job belongs in the template project instead.
+
+The prompt lives in its own file rather than inside the job's shell so that the instructions the
+reviewer follows can be read and tuned in a merge request, and so the suggestion-block syntax
+survives without a layer of YAML and shell escaping.
+
+## Keeping the review quiet enough to leave on
+
+An automated reviewer earns its place by being ignorable. The job therefore posts **only findings
+serious enough to block the merge** on the automatic pass, printing everything lesser to the job
+log; a pipeline started by hand from the UI (`$CI_PIPELINE_SOURCE == "web"`) reviews at every
+severity. It posts no summary note and says nothing when a change is clean — the discussion count
+and the pipeline status already report that the review ran.
+
+The single most common reason teams mute a bot reviewer is a wall of general notes in the
+activity feed. Anchoring findings to lines (below) keeps them in the Changes tab, beside the code,
+where they behave like a colleague's review.
 
 ## How the job posts back
 
-Two mechanisms exist, and which one is available depends on the runner image:
+Findings go up as **inline discussions** — threads anchored to a line in the diff, which render
+in the Changes tab, collapse with the file, and can be resolved. That needs the merge request's
+`diff_refs` (`base_sha`, `head_sha`, `start_sha`), which the job fetches once and hands to the
+prompt, plus a `new_path` and a `new_line` the diff actually touches:
+
+```sh
+jq -n --rawfile body .tmp/body.md --arg path "$FILE" --argjson line "$LINE" --argjson refs "$DIFF_REFS" \
+  '{body: $body, position: ($refs + {position_type: "text", new_path: $path, new_line: $line})}' \
+  > .tmp/note.json
+glab api "projects/$PROJECT_ID/merge_requests/$MR_IID/discussions" -X POST --input .tmp/note.json
+```
+
+A `400` from that call nearly always means `new_line` is not a line the diff adds or keeps.
+
+Where a fix is a single-line edit, the note body ends with a GitLab **suggestion block**, which
+renders as an Apply button on the thread:
+
+````markdown
+```suggestion:-0+0
+for (let i = 0; i < catalog.plugins.length; i++) {
+```
+````
+
+`glab mr note create` posts a plain note into the activity feed instead: use it for something that
+genuinely concerns the whole change, not for per-finding output.
+
+Two mechanisms exist for authenticating those calls, and which one is available depends on the
+runner image:
 
 **Duo-enabled runner images** ship `/bin/gitlab-mcp-server`, a binary that supplies `mcp__gitlab`
 tools inside the job; naming `mcp__gitlab` in `--allowedTools` is what lets Claude comment on the

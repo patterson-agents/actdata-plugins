@@ -79,8 +79,14 @@ code-review:
     # glab authenticates from GITLAB_ACCESS_TOKEN automatically; on a
     # self-managed instance it also needs the host.
     GITLAB_HOST: "$CI_SERVER_HOST"
+    # Review cost and latency knobs. Sonnet at medium effort reviews a typical
+    # merge request in about a minute; raise to claude-opus-5 / high for a
+    # deeper pass, or run one from the pipeline UI when a change warrants it.
+    CLAUDE_MODEL: "claude-sonnet-5"
+    CLAUDE_EFFORT: "medium"
+    CLAUDE_MAX_BUDGET_USD: "1.00"
   before_script:
-    - apk add --no-cache git bash curl
+    - apk add --no-cache git bash curl jq
     # Alpine's packaged glab lags far behind releases; install a pinned,
     # checksum-verified build from the official release.
     - curl -fsSL -o /tmp/glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.tar.gz"
@@ -95,14 +101,40 @@ code-review:
       case "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" in
         *[!A-Za-z0-9._/-]*) echo "branch name outside [A-Za-z0-9._/-]; refusing to review"; exit 1 ;;
       esac
-      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
-        POSTING="Post each finding on merge request !$CI_MERGE_REQUEST_IID with 'glab mr note create $CI_MERGE_REQUEST_IID --message ...', one note per unique issue, then a summary note."
+      mkdir -p .tmp
+
+      # The automatic pass on every merge request posts only what blocks, so it
+      # stays quiet enough that people leave it on. A pipeline started by hand
+      # from the UI reviews thoroughly.
+      if [ "$CI_PIPELINE_SOURCE" = "web" ]; then
+        POSTING_MODE="thorough - post findings at any severity"
       else
-        POSTING="No posting credentials are available in this job, so print the full review to stdout and state clearly that nothing was posted."
+        POSTING_MODE="blocking-only"
       fi
+
+      if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+        DIFF_REFS=$(glab api "projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID" | jq -c .diff_refs)
+      else
+        DIFF_REFS=""
+        POSTING_MODE="no posting credentials in this job - print the review to stdout and state plainly that nothing was posted"
+      fi
+
+      {
+        echo "Merge request: !$CI_MERGE_REQUEST_IID ($CI_MERGE_REQUEST_SOURCE_BRANCH_NAME into $CI_MERGE_REQUEST_TARGET_BRANCH_NAME)"
+        echo "Project id: $CI_PROJECT_ID"
+        echo "Diff refs: $DIFF_REFS"
+        echo "Posting mode: $POSTING_MODE"
+        echo
+        cat .gitlab/code-review-prompt.md
+      } > .tmp/review-prompt.md
+
+      DIFF_REFS="$DIFF_REFS" PROJECT_ID="$CI_PROJECT_ID" MR_IID="$CI_MERGE_REQUEST_IID" \
       claude \
-        -p "Review merge request !$CI_MERGE_REQUEST_IID (branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME against $CI_MERGE_REQUEST_TARGET_BRANCH_NAME) following the guidance in REVIEW.md and ACT_CODE_REVIEW.md, including any file they reference with @. Diff the merge request with git. Report only findings that name a concrete failure scenario and cite path:line. $POSTING Modify no files." \
-        --allowedTools "Read Grep Glob Bash(git diff:*) Bash(git log:*) Bash(git fetch:*) Bash(glab mr note:*) Bash(glab mr view:*) Bash(glab mr diff:*)" \
+        -p "$(cat .tmp/review-prompt.md)" \
+        --model "$CLAUDE_MODEL" \
+        --effort "$CLAUDE_EFFORT" \
+        --max-budget-usd "$CLAUDE_MAX_BUDGET_USD" \
+        --allowedTools "Read Grep Glob Write Bash(git diff:*) Bash(git log:*) Bash(jq:*) Bash(glab api:*) Bash(glab mr view:*) Bash(glab mr diff:*)" \
         --max-turns 25
   # Bounds a task that turns out harder than expected.
   timeout: 20m
