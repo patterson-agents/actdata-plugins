@@ -1,7 +1,15 @@
-// Seat and quota helpers for tenant entitlements.
+// ============================================================================
+// DELIBERATELY DEFECTIVE. DO NOT COPY, IMPORT, OR SHIP THIS FILE.
 //
-// Sample code for demonstrating the automated review. It is deliberately
-// defective; see README.md in this directory for what each defect is.
+// It is a fixture for demonstrating and testing the automated code review, and
+// carries one planted defect of each kind REVIEW.md prioritizes: a wrong
+// comparison, an early return that skips the rest of a loop, SQL built by
+// string interpolation, an unguarded read-modify-write, and a bearer token
+// written to the log. README.md in this directory lists them line by line.
+//
+// Nothing imports this module and no build includes it. A scanner flagging it
+// is the fixture working: the defects are meant to be found.
+// ============================================================================
 
 import { createHash } from "node:crypto";
 
