@@ -54,3 +54,23 @@ After the first review of a change, suppress new Nits and report only newly intr
 ## Summary shape
 
 Open the summary with a count by severity. Lead with "no blocking issues" when that is true.
+
+<!-- BEGIN generated ACT layer. Flattened from ACT_CODE_REVIEW.md for surfaces that read
+     REVIEW.md alone and do not expand imports. Edit ACT_CODE_REVIEW.md and regenerate
+     (/code-reviews:install); hand edits below this marker are lost. -->
+
+## ACT layer
+
+- Prefer repo-local scratch (a gitignored `.tmp/`) over `/tmp` so generated work stays durable and
+  inspectable; flag `/tmp` in a tracked file when a repo-local path would have worked. Keep plans
+  and specs in the repository rather than a private plans directory.
+- A new or upgraded third-party dependency is Important unless the change shows a
+  `socket package shallow` score; flag any dimension under 90, naming which one.
+- Conventional commits: `<type>(<scope>): <summary>`.
+- Text describing how the work was requested must not appear in the artifact: no second person
+  addressed to one reader, no "as requested", no session status, no machine-local counts or paths
+  as fixtures.
+- Tone: direct, specific, neutral — wording only; it changes nothing about what is reported.
+
+<!-- END generated ACT layer. -->
+

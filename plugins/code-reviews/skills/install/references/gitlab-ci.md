@@ -16,25 +16,38 @@ shared templates, ask whether the job belongs in the template project instead.
 
 ## How the job posts back
 
+Two mechanisms exist, and which one is available depends on the runner image:
+
+**Duo-enabled runner images** ship `/bin/gitlab-mcp-server`, a binary that supplies `mcp__gitlab`
+tools inside the job; naming `mcp__gitlab` in `--allowedTools` is what lets Claude comment on the
+merge request. **Standard Docker runners do not have this binary** — invoking it exits 127 — so on
+a stock image (`node:24-alpine`, for example) the job posts through `glab` instead, authenticated
+with a project access token:
+
 ```yaml
 script:
-  - /bin/gitlab-mcp-server || true
-  - >
-    claude -p "..."
-    --allowedTools "Read Grep Glob mcp__gitlab"
-    --max-turns 25
+  - |
+    if [ -n "${GITLAB_ACCESS_TOKEN:-}" ]; then
+      glab auth login --hostname "$CI_SERVER_HOST" --token "$GITLAB_ACCESS_TOKEN"
+      POSTING="Post each finding with 'glab mr note create ...'."
+    else
+      POSTING="Print the review to stdout and state that nothing was posted."
+    fi
+    claude -p "... $POSTING ..." \
+      --allowedTools "Read Grep Glob Bash(git diff:*) Bash(glab mr note:*) Bash(glab mr view:*)" \
+      --max-turns 25
 ```
 
-`/bin/gitlab-mcp-server` is a binary in the runner image that supplies `mcp__gitlab` tools inside
-the job. Naming `mcp__gitlab` in `--allowedTools` is what lets Claude comment on the merge request.
+Without a token the job still reviews — the output lands in the job log with an explicit note that
+nothing was posted, which keeps the failure visible instead of silent.
 
 > [!IMPORTANT]
-> This runner binary is **not** the HTTP MCP server at `https://<host>/api/v4/mcp`. That one is for
+> Neither mechanism is the HTTP MCP server at `https://<host>/api/v4/mcp`. That one is for
 > interactive sessions and authenticates over OAuth, which is unusable in CI. They are not
 > interchangeable.
 
-The tool allowlist above is read-only plus GitLab: a reviewer has no reason to hold `Edit`, `Write`,
-or a general `Bash`. A job that also implements changes is a different job.
+The tool allowlist stays read-only plus scoped posting commands: a reviewer has no reason to hold
+`Edit`, `Write`, or a general `Bash`. A job that also implements changes is a different job.
 
 ## Triggering
 
