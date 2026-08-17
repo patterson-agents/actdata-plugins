@@ -40,6 +40,15 @@ precomputed diff file, and returns findings as data validated against `code-revi
 (`--output-format json --json-schema`). The pipeline then posts them. The model has no credential,
 no write tool, and no posting command.
 
+It also runs `--safe-mode`. Claude Code loads hooks, skills, plugins, and MCP servers from the
+working tree, and in a merge request pipeline that tree is the change under review: a hook declared
+in `.claude/settings.json` runs inside the job that holds the tokens, whatever the model's own tools
+are restricted to. `--safe-mode` loads none of it; built-in tools and permissions are unaffected.
+
+Read is still Read, so a finding body can carry anything the model could read, `/proc/self/environ`
+included. The poster refuses to publish a body containing the value of any credential in the job's
+environment — the last checkpoint before model output becomes a public comment.
+
 > [!WARNING]
 > A wrapper script the model is allowed to *invoke* is not a substitute, if the model can also
 > **write**: it can overwrite the wrapper and then run it. Either the model has no write access at
