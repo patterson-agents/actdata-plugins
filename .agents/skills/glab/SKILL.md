@@ -22,14 +22,14 @@ GitLab operations. Run `glab <command> --help` for detailed flag information.
 # Issues
 glab issue view <iid>
 glab issue list --label "bug,priority::1"
-glab issue create --title "title" --description "$(cat /tmp/desc.md)"
+glab issue create --title "title" --description "$(cat .tmp/desc.md)"
 glab issue note <iid> -m "comment text"
 
 # Merge requests
-glab mr create --push --title "fix: title" --description "$(cat /tmp/desc.md)"
+glab mr create --push --title "fix: title" --description "$(cat .tmp/desc.md)"
 glab mr view <iid>
 glab mr list --assignee <user>
-glab mr update <iid> --description "$(cat /tmp/desc.md)"
+glab mr update <iid> --description "$(cat .tmp/desc.md)"
 glab mr note create <iid> -m "comment text"
 
 # CI/CD
@@ -78,7 +78,7 @@ safest pattern for non-interactive use.
 
 ```shell
 # From a file
-glab mr note create <iid> < /tmp/body.md
+glab mr note create <iid> < .tmp/body.md
 
 # Inline literal multi-line body — quoted heredoc, no shell expansion inside
 glab mr note create <iid> << 'EOF'
@@ -102,7 +102,7 @@ EOF
 
 For descriptions on `glab issue create` / `glab mr create` / `glab mr update`,
 inline a quoted heredoc into `--description`, or for very large or reusable
-bodies write to a file and use `--description "$(cat /tmp/desc.md)"`.
+bodies write to a file and use `--description "$(cat .tmp/desc.md)"`.
 
 ### Threaded replies on merge requests
 
@@ -146,11 +146,11 @@ glab api projects/:id/issues/<iid>/discussions \
   | jq '.[] | {id, body: .notes[0].body}'
 
 # Build the body in a file, then post it with -F body=@file
-cat > /tmp/reply.md << 'EOF'
-@user — here's the result, with `code`, a $variable, and an emoji ✅.
+cat > .tmp/reply.md << 'EOF'
+@user — here's the result, with `code`, a $variable, and a trailing backslash \.
 EOF
 glab api projects/:id/issues/<iid>/discussions/<discussion-id>/notes \
-  -F body=@/tmp/reply.md
+  -F body=@.tmp/reply.md
 ```
 
 For a short, plain reply you can still inline it with `-f body="reply text"`.
@@ -183,12 +183,12 @@ glab api projects/:id/issues/:iid/notes -f body="comment text"
 # (e.g. "@user thanks") must NOT go through -F — it would be read as a
 # filename. Use -f for literal inline text, or write the body to a file and
 # point -F at the file (recommended for rich/markdown bodies).
-glab api projects/:id/issues/:iid/notes -F body=@/tmp/comment.md
+glab api projects/:id/issues/:iid/notes -F body=@.tmp/comment.md
 
 # --input — raw request body from a file (or '-' for stdin). Does NOT set
 # Content-Type. Without the header, JSON endpoints return HTTP 415.
 glab api projects/:id/issues/:iid/notes \
-  --input /tmp/body.json \
+  --input .tmp/body.json \
   -H "Content-Type: application/json"
 ```
 

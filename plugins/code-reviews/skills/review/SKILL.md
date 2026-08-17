@@ -1,7 +1,7 @@
 ---
 name: review
 description: This skill should be used when the user asks to "review this PR", "review this merge request", "code review these changes", "review my diff", "what's wrong with this change", or when an automated pipeline invokes a review on a pull request or merge request. It carries the review methodology - severity, what to flag, what to stay silent about, the verification bar - and reads REVIEW.md, ACT_CODE_REVIEW.md, CLAUDE.md and AGENTS.md as layered guidance. Applies on any host and any provider.
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Read, Grep, Glob, Bash, mcp__github_inline_comment__create_inline_comment, mcp__gitlab
 ---
 
 # Perform a code review
